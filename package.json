@@ -10,6 +10,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "@tailwindcss/forms": "^0.3.3",
     "axios": "^0.21.1",
     "axios-hooks": "^2.6.3",
     "highcharts": "^9.1.2",
