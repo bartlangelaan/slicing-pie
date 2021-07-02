@@ -7,7 +7,14 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 });
 
 export interface Props {
-  timeSpent: { [key in Person]: number };
+  timeSpent: {
+    [key in Person]: {
+      year: number;
+      fromJuly: number;
+      yearFiltered: number;
+      fromJulyFiltered: number;
+    };
+  };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
@@ -53,11 +60,14 @@ export function NetProfitTable(props: Props) {
   const totalProfit = props.totalProfit.plus - props.totalProfit.min;
 
   const grossProfitBart =
-    totalProfit * (props.timeSpent.bart / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.bart.yearFiltered / props.totalTimeSpent) ||
+    0;
   const grossProfitIan =
-    totalProfit * (props.timeSpent.ian / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.ian.yearFiltered / props.totalTimeSpent) ||
+    0;
   const grossProfitNiels =
-    totalProfit * (props.timeSpent.niels / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.niels.yearFiltered / props.totalTimeSpent) ||
+    0;
 
   const grossTaxBart = grossProfitBart * 0.371;
   const grossTaxIan = grossProfitIan * 0.371;
@@ -495,11 +505,20 @@ export function NetProfitTable(props: Props) {
                     }}
                   />
                   <div className="mt-2">
+                    min.{' '}
                     {(unfitForWorkBart
                       ? (800 - 16 * 26) / 26
                       : (1225 - 24 * 26) / 26
                     ).toFixed(1)}{' '}
                     uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.bart.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkBart
+                      ? 800 - 16 * 26
+                      : 1225 - 24 * 26
+                    ).toFixed(0)}{' '}
+                    uren geboekt
                   </div>
                 </div>
               </td>
@@ -516,11 +535,19 @@ export function NetProfitTable(props: Props) {
                     }}
                   />
                   <div className="mt-2">
+                    min.{' '}
                     {(unfitForWorkIan
                       ? (800 - 16 * 26) / 26
                       : (1225 - 24 * 26) / 26
                     ).toFixed(1)}{' '}
                     uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.ian.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkIan ? 800 - 16 * 26 : 1225 - 24 * 26).toFixed(
+                      0,
+                    )}{' '}
+                    uren geboekt
                   </div>
                 </div>
               </td>
@@ -538,11 +565,20 @@ export function NetProfitTable(props: Props) {
                     }}
                   />
                   <div className="mt-2">
+                    min.{' '}
                     {(unfitForWorkNiels
                       ? (800 - 16 * 26) / 26
                       : (1225 - 24 * 26) / 26
                     ).toFixed(1)}{' '}
                     uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.niels.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkNiels
+                      ? 800 - 16 * 26
+                      : 1225 - 24 * 26
+                    ).toFixed(0)}{' '}
+                    uren geboekt
                   </div>
                 </div>
               </td>

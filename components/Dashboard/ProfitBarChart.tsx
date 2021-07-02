@@ -9,7 +9,14 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 });
 
 export interface Props {
-  timeSpent: { [key in Person]: number };
+  timeSpent: {
+    [key in Person]: {
+      year: number;
+      fromJuly: number;
+      yearFiltered: number;
+      fromJulyFiltered: number;
+    };
+  };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
@@ -19,11 +26,14 @@ export function ProfitBarChart(props: Props) {
   const totalProfit = props.totalProfit.plus - props.totalProfit.min;
 
   const grossProfitBart =
-    totalProfit * (props.timeSpent.bart / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.bart.yearFiltered / props.totalTimeSpent) ||
+    0;
   const grossProfitIan =
-    totalProfit * (props.timeSpent.ian / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.ian.yearFiltered / props.totalTimeSpent) ||
+    0;
   const grossProfitNiels =
-    totalProfit * (props.timeSpent.niels / props.totalTimeSpent) || 0;
+    totalProfit * (props.timeSpent.niels.yearFiltered / props.totalTimeSpent) ||
+    0;
 
   const profitOptions: Highcharts.Options = useMemo(() => {
     const costsBart =

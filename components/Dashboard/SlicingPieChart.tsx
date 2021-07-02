@@ -4,7 +4,14 @@ import { useMemo } from 'react';
 import { Person } from '../../pages/api/get-slicing-pie';
 
 export interface Props {
-  timeSpent: { [key in Person]: number };
+  timeSpent: {
+    [key in Person]: {
+      year: number;
+      fromJuly: number;
+      yearFiltered: number;
+      fromJulyFiltered: number;
+    };
+  };
 }
 
 export function SlicingPieChart(props: Props) {
@@ -27,7 +34,7 @@ export function SlicingPieChart(props: Props) {
           name: 'Slicing pie',
           data: Object.entries(props.timeSpent).map(([person, value]) => [
             person[0].toUpperCase() + person.slice(1),
-            value,
+            value.yearFiltered,
           ]),
         },
       ],

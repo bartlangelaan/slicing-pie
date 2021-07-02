@@ -5,7 +5,14 @@ import { ProfitBarChart } from './ProfitBarChart';
 import { SlicingPieChart } from './SlicingPieChart';
 
 export interface Props {
-  timeSpent: { [key in Person]: number };
+  timeSpent: {
+    [key in Person]: {
+      year: number;
+      fromJuly: number;
+      yearFiltered: number;
+      fromJulyFiltered: number;
+    };
+  };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
@@ -14,8 +21,8 @@ export interface Props {
 export function Dashboard(props: Props) {
   return (
     <>
-      <NetProfitTable {...props} />
       <SlicingPieChart timeSpent={props.timeSpent} />
+      <NetProfitTable {...props} />
       <ProfitBarChart {...props} />
     </>
   );

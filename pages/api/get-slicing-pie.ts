@@ -271,9 +271,9 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
       if (!person) return total;
 
-      if (ledgerAccountsIds[person].skipProjects.includes(item.project.id)) {
-        return total;
-      }
+      const shouldSkip = ledgerAccountsIds[person].skipProjects.includes(
+        item.project.id,
+      );
 
       const startDate = new Date(item.started_at);
       const endDate = new Date(item.ended_at);
@@ -287,10 +287,36 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
       return {
         ...total,
-        [person]: total[person] + timeEntrySpent,
+        [person]: {
+          year: total[person].year + timeEntrySpent,
+          yearFiltered:
+            total[person].yearFiltered + (shouldSkip ? 0 : timeEntrySpent),
+          fromJuly:
+            total[person].fromJuly +
+            (startDate.getTime() > new Date('2021-07-01').getTime()
+              ? timeEntrySpent
+              : 0),
+          fromJulyFiltered:
+            total[person].fromJulyFiltered +
+            (!shouldSkip &&
+            startDate.getTime() > new Date('2021-07-01').getTime()
+              ? timeEntrySpent
+              : 0),
+        },
       };
     },
-    { bart: 0, ian: 0, niels: 0 } as { [key in Person]: number },
+    {
+      bart: { year: 0, fromJuly: 0, yearFiltered: 0, fromJulyFiltered: 0 },
+      ian: { year: 0, fromJuly: 0, yearFiltered: 0, fromJulyFiltered: 0 },
+      niels: { year: 0, fromJuly: 0, yearFiltered: 0, fromJulyFiltered: 0 },
+    } as {
+      [key in Person]: {
+        year: number;
+        fromJuly: number;
+        yearFiltered: number;
+        fromJulyFiltered: number;
+      };
+    },
   );
 
   const profitPerAccount = contactsResponse.data.reduce((total, item) => {
