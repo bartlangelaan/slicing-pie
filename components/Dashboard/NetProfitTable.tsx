@@ -54,7 +54,7 @@ export function NetProfitTable(props: Props) {
 
   const [hourCriteriumAll, setHourCriteriumAll] = useState(false);
   const [hourCriteriumBart, setHourCriteriumBart] = useState(false);
-  const [hourCriteriumIan, setHourCriteriumIan] = useState(true);
+  const [hourCriteriumIan, setHourCriteriumIan] = useState(false);
   const [hourCriteriumNiels, setHourCriteriumNiels] = useState(false);
 
   const totalProfit = props.totalProfit.plus - props.totalProfit.min;

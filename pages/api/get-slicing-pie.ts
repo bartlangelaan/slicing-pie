@@ -1,5 +1,31 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { setup, RedisStore } from 'axios-cache-adapter';
+import redis from 'redis';
+
+axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
+axios.defaults.headers = {
+  authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
+};
+
+const client = redis.createClient({
+  url: process.env.REDIS,
+});
+const store = new RedisStore(client);
+// client.set('bla', 'joe');
+export const api = setup({
+  // `axios` options
+  baseURL: axios.defaults.baseURL,
+  // `axios-cache-adapter` options
+  cache: {
+    maxAge: 365 * 24 * 60 * 60 * 1000,
+    store, // Pass `RedisStore` store to `axios-cache-adapter`
+    exclude: {
+      // Only exclude PUT, PATCH and DELETE methods from cache
+      methods: ['put', 'patch', 'delete'],
+    },
+  },
+});
 
 const ledgerAccountsIds = {
   bart: {
@@ -27,11 +53,6 @@ const ledgerAccountsIds = {
 
 export type Person = keyof typeof ledgerAccountsIds;
 
-axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
-axios.defaults.headers = {
-  authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
-};
-
 function getInitialObject() {
   return {
     bart: { plus: 0, min: 0 },
@@ -57,10 +78,11 @@ async function request<T>(
   url: string,
   page: number,
   result: AxiosResponse<T>[],
+  requestConfig?: AxiosRequestConfig,
 ) {
   const token = url.includes('?') ? '&' : '?';
 
-  const res = await axios.get<T>(`${url}${token}page=${page}`);
+  const res = await api.get<T>(`${url}${token}page=${page}`, requestConfig);
 
   result.push(res);
 
@@ -71,21 +93,45 @@ async function request<T>(
   return result;
 }
 
-export async function requestAll<T>(url: string) {
+export async function requestAll<T>(
+  url: string,
+  requestConfig?: AxiosRequestConfig,
+) {
   const result = [] as AxiosResponse<T>[];
 
-  const res = await request<T>(url, 1, result);
+  const res = await request<T>(url, 1, result, requestConfig);
 
   return res.map((req) => req.data).flat();
 }
 
 export default async (_req: NextApiRequest, res: NextApiResponse) => {
-  const financialMutationsRequest = requestAll<
+  const financialMutationsSyncResponse = await requestAll<
     {
-      amount: string;
-      ledger_account_bookings: { ledger_account_id: string; price: string }[];
+      id: string;
+      version: number;
     }[]
-  >('/financial_mutations.json');
+  >('/financial_mutations/synchronization.json', { cache: { maxAge: 0 } });
+
+  const financialMutationsResponses = [];
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const financialMutationsRequest of financialMutationsSyncResponse) {
+    // eslint-disable-next-line no-await-in-loop
+    const financialMutationsResponse = await api.post<
+      {
+        amount: string;
+        ledger_account_bookings: {
+          ledger_account_id: string;
+          price: string;
+        }[];
+      }[]
+    >('/financial_mutations/synchronization.json', {
+      ids: [financialMutationsRequest.id],
+      version: financialMutationsRequest.version,
+    });
+
+    financialMutationsResponses.push(financialMutationsResponse.data[0]);
+  }
 
   const purchaseInvoicesRequest = requestAll<
     {
@@ -116,7 +162,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
       paused_duration: number;
       billable: boolean;
       user: { id: string };
-      project: { id: string };
+      project?: { id: string };
     }[]
   >('/time_entries.json?filter=period:202011..202112');
 
@@ -133,13 +179,11 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
   >('/sales_invoices.json?filter=state:pending_payment|paid|open');
 
   const [
-    financialMutationsResponse,
     purchaseInvoicesResponse,
     receiptsResponse,
     timeEntriesResponse,
     salesInvoicesResponse,
   ] = await Promise.all([
-    financialMutationsRequest,
     purchaseInvoicesRequest,
     receiptsRequest,
     timeEntriesRequest,
@@ -158,7 +202,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     ),
   });
 
-  const totalProfit = financialMutationsResponse.reduce(
+  const totalProfit = financialMutationsResponses.reduce(
     (total, item) => {
       const price = parseFloat(item.amount);
 
@@ -170,7 +214,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     { plus: 0, min: 0 },
   );
 
-  const personalFinancialMutations = financialMutationsResponse.reduce(
+  const personalFinancialMutations = financialMutationsResponses.reduce(
     (total, item) => {
       return item.ledger_account_bookings.reduce((subTotal, booking) => {
         const person = findPerson(booking.ledger_account_id);
@@ -179,7 +223,8 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
         const price = parseFloat(booking.price);
 
-        totalProfit.min += -price;
+        if (price > 0) totalProfit.plus += price;
+        else totalProfit.min += price;
 
         return {
           ...subTotal,
@@ -201,12 +246,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
         if (!person) return subTotal;
 
         const price = parseFloat(booking.price_base || booking.price);
-        // purchase invoices  53,3+75,48+41+19,25+51,55+4,09+55,1+20,1+38,15+127,84+51,3+20+59,29+20 = 636,45
-        // receipts = 41,6+11,05+169,83+17,2 = 239,68
-        // withdrawals = 481,8+11,05+41,6+169,83+200 = 904,28 - 39,23 = 865,05
 
-        // moneybird stortingen 41+19,25+51,55+20,10+55,10+4,09+38,15+127,87+75,48+53,30+11,05+41,6+169,83+39,23+51,30+17,2+16,56+59,29+16,42 = 908,37
-        // 636,4799999999999+239,68+39,23 = 919,48
         return {
           ...subTotal,
           [person]: {
@@ -271,9 +311,9 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
       if (!person) return total;
 
-      const shouldSkip = ledgerAccountsIds[person].skipProjects.includes(
-        item.project.id,
-      );
+      const shouldSkip =
+        item.project &&
+        ledgerAccountsIds[person].skipProjects.includes(item.project.id);
 
       const startDate = new Date(item.started_at);
       const endDate = new Date(item.ended_at);

@@ -8,6 +8,9 @@ if (typeof Highcharts === 'object') {
 }
 
 export default function Home() {
+  if (typeof window === 'undefined') return null;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [{ data }] = useAxios<Props>({
     url: '/api/get-slicing-pie',
   });
