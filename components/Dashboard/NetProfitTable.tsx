@@ -15,12 +15,19 @@ export interface Props {
       fromJulyFiltered: number;
     };
   };
-  personalCosts: { [key in Person]: { plus: number; min: number } };
   personalFinancialMutations: {
     [key in Person]: { plus: number; min: number };
   };
+  personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
+  revenuePerAccount: {
+    id: string;
+    company: string;
+    revenue: number;
+    goodwillValuePerson: Person | null;
+    goodwillValue: number;
+  }[];
 }
 
 function calculateSelfEmployedDeduction(

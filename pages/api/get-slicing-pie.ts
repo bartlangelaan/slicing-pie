@@ -359,35 +359,41 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     },
   );
 
-  const profitPerAccount = contactsResponse.data.reduce((total, item) => {
-    const goodwillValuePerson = (item.custom_fields
-      .find((field) => field.id === '325602584896210834')
-      ?.value.toLowerCase() || null) as Person | null;
+  const revenuePerAccount = contactsResponse.data
+    .map((item) => {
+      const goodwillValuePerson = (item.custom_fields
+        .find((field) => field.id === '325602584896210834')
+        ?.value.toLowerCase() || null) as Person | null;
 
-    const goodwillValue = parseFloat(
-      item.custom_fields.find((field) => field.id === '325602513599334133')
-        ?.value || '0',
-    );
+      const goodwillValue = parseFloat(
+        item.custom_fields.find((field) => field.id === '325602513599334133')
+          ?.value || '0',
+      );
 
-    const salesInvoices = salesInvoicesResponse.filter(
-      (invoice) => invoice.contact.id === item.id,
-    );
+      const salesInvoices = salesInvoicesResponse.filter(
+        (invoice) => invoice.contact.id === item.id,
+      );
 
-    const profit = salesInvoices.reduce(
-      (t, invoice) => t + parseFloat(invoice.total_price_excl_tax),
-      0,
-    );
+      const revenue = salesInvoices.reduce(
+        (t, invoice) => t + parseFloat(invoice.total_price_excl_tax),
+        0,
+      );
 
-    return {
-      ...total,
-      [item.id]: {
-        profit,
+      return {
+        revenue,
         goodwillValuePerson,
         goodwillValue,
+        id: item.id,
         company: item.company_name,
-      },
-    };
-  }, {} as { [key: string]: { company: string; profit: number; goodwillValuePerson: Person | null; goodwillValue: number } });
+      };
+    })
+    .sort((a, b) => {
+      if (a.revenue > b.revenue) return -1;
+
+      if (a.revenue < b.revenue) return 1;
+
+      return 0;
+    });
 
   res.json({
     totalProfit,
@@ -397,6 +403,6 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     personalReceipts,
     timeSpent,
     totalTimeSpent,
-    profitPerAccount,
+    revenuePerAccount,
   });
 };

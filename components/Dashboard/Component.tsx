@@ -1,5 +1,6 @@
 import React from 'react';
 import { Person } from '../../pages/api/get-slicing-pie';
+import { ClientRevenueTable } from './ClientRevenueTable';
 import { NetProfitTable } from './NetProfitTable';
 import { ProfitBarChart } from './ProfitBarChart';
 import { SlicingPieChart } from './SlicingPieChart';
@@ -19,6 +20,13 @@ export interface Props {
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
+  revenuePerAccount: {
+    id: string;
+    company: string;
+    revenue: number;
+    goodwillValuePerson: Person | null;
+    goodwillValue: number;
+  }[];
 }
 
 export function Dashboard(props: Props) {
@@ -27,6 +35,7 @@ export function Dashboard(props: Props) {
       <SlicingPieChart timeSpent={props.timeSpent} />
       <NetProfitTable {...props} />
       <ProfitBarChart {...props} />
+      <ClientRevenueTable {...props} />
     </>
   );
 }
