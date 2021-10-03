@@ -2,10 +2,11 @@
   "name": "moneybid-popup-io",
   "private": true,
   "version": "1.0.0",
+  "cacheDirectories": [".next/cache"],
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p $PORT",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix"
   },
