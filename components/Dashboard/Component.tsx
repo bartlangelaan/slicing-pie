@@ -13,6 +13,9 @@ export interface Props {
       fromJulyFiltered: number;
     };
   };
+  personalFinancialMutations: {
+    [key in Person]: { plus: number; min: number };
+  };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };

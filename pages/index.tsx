@@ -36,6 +36,7 @@ export default function Home() {
           totalProfit={data.totalProfit}
           totalTimeSpent={data.totalTimeSpent}
           personalCosts={data.personalCosts}
+          personalFinancialMutations={data.personalFinancialMutations}
         />
       )}
     </div>

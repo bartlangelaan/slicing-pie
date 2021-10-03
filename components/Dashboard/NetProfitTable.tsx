@@ -16,6 +16,9 @@ export interface Props {
     };
   };
   personalCosts: { [key in Person]: { plus: number; min: number } };
+  personalFinancialMutations: {
+    [key in Person]: { plus: number; min: number };
+  };
   totalTimeSpent: number;
   totalProfit: { plus: number; min: number };
 }
@@ -183,6 +186,24 @@ export function NetProfitTable(props: Props) {
   const netProfitNiels = grossProfitNiels - costsNiels - netTaxNiels;
 
   const netProfit = netProfitBart + netProfitIan + netProfitNiels;
+
+  const withDrawalsBart =
+    props.personalFinancialMutations.bart.plus -
+    props.personalFinancialMutations.bart.min;
+  const withDrawalsIan =
+    props.personalFinancialMutations.ian.plus -
+    props.personalFinancialMutations.ian.min;
+  const withDrawalsNiels =
+    props.personalFinancialMutations.niels.plus -
+    props.personalFinancialMutations.niels.min;
+
+  const totalWithDrawals = withDrawalsBart + withDrawalsIan + withDrawalsNiels;
+
+  const netLeftBart = netProfitBart - withDrawalsBart;
+  const netLeftIan = netProfitIan - withDrawalsIan;
+  const netLeftNiels = netProfitNiels - withDrawalsNiels;
+
+  const netLeft = netLeftBart + netLeftIan + netLeftNiels;
 
   return (
     <div className="overflow-x-auto">
@@ -748,6 +769,67 @@ export function NetProfitTable(props: Props) {
               <td className="py-3 px-6 text-right whitespace-nowrap">
                 <div>
                   <span>{currencyFormatter.format(netTaxNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span className="font-medium">Over na onttrekkingen</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span className="font-medium">
+                    {currencyFormatter.format(netLeft)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(netLeftBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(netLeftIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(netLeftNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>Onttrekkingen</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>{currencyFormatter.format(totalWithDrawals)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(withDrawalsBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(withDrawalsIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(withDrawalsNiels)}</span>
                 </div>
               </td>
             </tr>
