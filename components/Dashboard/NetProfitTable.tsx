@@ -20,6 +20,7 @@ export interface Props {
   };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
+  totalTimeSpentFiltered: number;
   totalProfit: { plus: number; min: number };
   revenuePerAccount: {
     id: string;
@@ -70,14 +71,14 @@ export function NetProfitTable(props: Props) {
   const totalProfit = props.totalProfit.plus - props.totalProfit.min;
 
   const grossProfitBart =
-    totalProfit * (props.timeSpent.bart.yearFiltered / props.totalTimeSpent) ||
-    0;
+    totalProfit *
+      (props.timeSpent.bart.yearFiltered / props.totalTimeSpentFiltered) || 0;
   const grossProfitIan =
-    totalProfit * (props.timeSpent.ian.yearFiltered / props.totalTimeSpent) ||
-    0;
+    totalProfit *
+      (props.timeSpent.ian.yearFiltered / props.totalTimeSpentFiltered) || 0;
   const grossProfitNiels =
-    totalProfit * (props.timeSpent.niels.yearFiltered / props.totalTimeSpent) ||
-    0;
+    totalProfit *
+      (props.timeSpent.niels.yearFiltered / props.totalTimeSpentFiltered) || 0;
 
   const grossTaxBart = grossProfitBart * 0.371;
   const grossTaxIan = grossProfitIan * 0.371;

@@ -28,18 +28,7 @@ export default function Home() {
   return (
     <div className="bg-white">
       <h1>Popup IO</h1>
-      {!data ? (
-        'Loading...'
-      ) : (
-        <Dashboard
-          timeSpent={data.timeSpent}
-          totalProfit={data.totalProfit}
-          totalTimeSpent={data.totalTimeSpent}
-          personalCosts={data.personalCosts}
-          personalFinancialMutations={data.personalFinancialMutations}
-          revenuePerAccount={data.revenuePerAccount}
-        />
-      )}
+      {!data ? 'Loading...' : <Dashboard {...data} />}
     </div>
   );
 }

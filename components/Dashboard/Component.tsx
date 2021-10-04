@@ -19,6 +19,7 @@ export interface Props {
   };
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
+  totalTimeSpentFiltered: number;
   totalProfit: { plus: number; min: number };
   revenuePerAccount: {
     id: string;

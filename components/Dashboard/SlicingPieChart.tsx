@@ -46,7 +46,7 @@ export function SlicingPieChart(props: Props) {
           dataLabels: {
             enabled: true,
             format:
-              '<b>{point.name}</b>:<br>{point.percentage:.1f} %<br>Uren: {point.y:.0f}',
+              '<b>{point.name}</b>:<br>{point.percentage:.2f} %<br>Uren: {point.y:.0f}',
           },
         },
       },

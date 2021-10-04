@@ -304,6 +304,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
   }, getInitialObject());
 
   let totalTimeSpent = 0;
+  let totalTimeSpentFiltered = 0;
 
   const timeSpent = timeEntriesResponse.reduce(
     (total, item) => {
@@ -324,6 +325,9 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
       const timeEntrySpent = duration / 3600;
 
       totalTimeSpent += timeEntrySpent;
+      if (!shouldSkip) {
+        totalTimeSpentFiltered += timeEntrySpent;
+      }
 
       return {
         ...total,
@@ -403,6 +407,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     personalReceipts,
     timeSpent,
     totalTimeSpent,
+    totalTimeSpentFiltered,
     revenuePerAccount,
   });
 };
