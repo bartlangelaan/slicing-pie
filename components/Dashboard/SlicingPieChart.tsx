@@ -53,6 +53,8 @@ export function SlicingPieChart(props: GetSlicingPieResponse) {
   );
 
   return (
-    <HighchartsReact highcharts={Highcharts} options={slicingPieOptions} />
+    <div className="bg-white shadow-lg rounded mt-12 flex justify-center p-8">
+      <HighchartsReact highcharts={Highcharts} options={slicingPieOptions} />
+    </div>
   );
 }

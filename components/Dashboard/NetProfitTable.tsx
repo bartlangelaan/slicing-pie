@@ -273,6 +273,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     return {
       chart: {
         type: 'column',
+        backgroundColor: 'transparent',
       },
       title: {
         text: 'Winst per vennoot',
@@ -425,7 +426,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   return (
     <div>
-      <div className="bg-white shadow-md rounded my-6">
+      <div className="bg-white shadow-lg rounded mt-12">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
@@ -1231,7 +1232,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           </tbody>
         </table>
       </div>
-      <HighchartsReact highcharts={Highcharts} options={profitOptions} />
+      <div className="mt-12 shadow-lg p-8 bg-white">
+        <HighchartsReact highcharts={Highcharts} options={profitOptions} />
+      </div>
     </div>
   );
 }

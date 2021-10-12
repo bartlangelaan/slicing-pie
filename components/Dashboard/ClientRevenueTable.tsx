@@ -7,8 +7,8 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 
 export function ClientRevenueTable(props: GetSlicingPieResponse) {
   return (
-    <div className="overflow-x-auto w-full">
-      <div className="bg-white shadow-md rounded my-6">
+    <div className="w-full my-12">
+      <div className="bg-white shadow-lg rounded">
         <table className="min-w-max w-full table-auto">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
