@@ -1,30 +1,19 @@
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useMemo } from 'react';
-import { Person } from '../../pages/api/get-slicing-pie';
+import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
 const currencyFormatter = Intl.NumberFormat('nl', {
   style: 'currency',
   currency: 'EUR',
 });
 
-export interface Props {
-  timeSpent: {
-    [key in Person]: {
-      year: number;
-      fromJuly: number;
-      yearFiltered: number;
-      fromJulyFiltered: number;
-    };
-  };
-  personalCosts: { [key in Person]: { plus: number; min: number } };
-  totalTimeSpent: number;
-  totalTimeSpentFiltered: number;
-  totalProfit: { plus: number; min: number };
-}
-
-export function ProfitBarChart(props: Props) {
-  const totalProfit = props.totalProfit.plus - props.totalProfit.min;
+export function ProfitBarChart(props: GetSlicingPieResponse) {
+  const totalProfit =
+    props.totalProfit.plus -
+    props.totalProfit.min +
+    props.totalProfit.openPlus -
+    props.totalProfit.openMin;
 
   const grossProfitBart =
     totalProfit *

@@ -1,35 +1,10 @@
 import { useState } from 'react';
-import { Person } from '../../pages/api/get-slicing-pie';
+import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
 const currencyFormatter = Intl.NumberFormat('nl', {
   style: 'currency',
   currency: 'EUR',
 });
-
-export interface Props {
-  timeSpent: {
-    [key in Person]: {
-      year: number;
-      fromJuly: number;
-      yearFiltered: number;
-      fromJulyFiltered: number;
-    };
-  };
-  personalFinancialMutations: {
-    [key in Person]: { plus: number; min: number };
-  };
-  personalCosts: { [key in Person]: { plus: number; min: number } };
-  totalTimeSpent: number;
-  totalTimeSpentFiltered: number;
-  totalProfit: { plus: number; min: number };
-  revenuePerAccount: {
-    id: string;
-    company: string;
-    revenue: number;
-    goodwillValuePerson: Person | null;
-    goodwillValue: number;
-  }[];
-}
 
 function calculateSelfEmployedDeduction(
   grossProfit: number,
@@ -57,7 +32,7 @@ function calculateStartupDeduction(
   return maxDeduction;
 }
 
-export function NetProfitTable(props: Props) {
+export function NetProfitTable(props: GetSlicingPieResponse) {
   const [unfitForWorkAll, setUnfitForWorkAll] = useState(false);
   const [unfitForWorkBart, setUnfitForWorkBart] = useState(false);
   const [unfitForWorkIan, setUnfitForWorkIan] = useState(true);
@@ -68,7 +43,11 @@ export function NetProfitTable(props: Props) {
   const [hourCriteriumIan, setHourCriteriumIan] = useState(false);
   const [hourCriteriumNiels, setHourCriteriumNiels] = useState(false);
 
-  const totalProfit = props.totalProfit.plus - props.totalProfit.min;
+  const totalProfit =
+    props.totalProfit.plus -
+    props.totalProfit.min +
+    props.totalProfit.openPlus -
+    props.totalProfit.openMin;
 
   const grossProfitBart =
     totalProfit *
@@ -189,9 +168,19 @@ export function NetProfitTable(props: Props) {
 
   const netTax = netTaxBart + netTaxIan + netTaxNiels;
 
-  const netProfitBart = grossProfitBart - costsBart - netTaxBart;
-  const netProfitIan = grossProfitIan - costsIan - netTaxIan;
-  const netProfitNiels = grossProfitNiels - costsNiels - netTaxNiels;
+  const contributionHIABart = grossProfitAfterDeductionBart * 0.0575;
+  const contributionHIAIan = grossProfitAfterDeductionIan * 0.0575;
+  const contributionHIANiels = grossProfitAfterDeductionNiels * 0.0575;
+
+  const contributionHIA =
+    contributionHIABart + contributionHIAIan + contributionHIANiels;
+
+  const netProfitBart =
+    grossProfitBart - costsBart - netTaxBart - contributionHIABart;
+  const netProfitIan =
+    grossProfitIan - costsIan - netTaxIan - contributionHIAIan;
+  const netProfitNiels =
+    grossProfitNiels - costsNiels - netTaxNiels - contributionHIANiels;
 
   const netProfit = netProfitBart + netProfitIan + netProfitNiels;
 
@@ -236,9 +225,7 @@ export function NetProfitTable(props: Props) {
               <td className="py-3 px-6 text-right whitespace-nowrap border-r">
                 <div>
                   <span className="font-medium">
-                    {currencyFormatter.format(
-                      props.totalProfit.plus - props.totalProfit.min,
-                    )}
+                    {currencyFormatter.format(totalProfit)}
                   </span>
                 </div>
               </td>
@@ -777,6 +764,33 @@ export function NetProfitTable(props: Props) {
               <td className="py-3 px-6 text-right whitespace-nowrap">
                 <div>
                   <span>{currencyFormatter.format(netTaxNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>Inkomensafhankelijke bijdrage Zvw en Wlz (5.75%)</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>{currencyFormatter.format(contributionHIA)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(contributionHIABart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(contributionHIAIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>{currencyFormatter.format(contributionHIANiels)}</span>
                 </div>
               </td>
             </tr>

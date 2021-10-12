@@ -8,6 +8,16 @@ axios.defaults.headers = {
   authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
 };
 
+// @todo openstaande facturen meenemen als losse regel (+ als winst?) - DONE
+// @todo urencriterium computed maken op basis van uren per week
+// @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje
+// @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is
+// @todo beveiliging api endpoints
+// @todo "hidden" mode
+// @todo totalen bij omzet per klant tabel
+// @todo filter alles op 2021
+// @todo voorbereiden 2022
+
 const client = redis.createClient({
   url: process.env.REDIS,
 });
@@ -135,6 +145,8 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
   const purchaseInvoicesRequest = requestAll<
     {
+      state: 'open' | 'new' | 'paid';
+      total_price_excl_tax: string;
       details: {
         ledger_account_id: string;
         price: string;
@@ -168,7 +180,7 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
 
   const salesInvoicesRequest = requestAll<
     {
-      state: string;
+      state: 'pending_payment' | 'paid' | 'open';
       total_price_excl_tax: string;
       contact: {
         id: string;
@@ -202,17 +214,47 @@ export default async (_req: NextApiRequest, res: NextApiResponse) => {
     ),
   });
 
-  const totalProfit = financialMutationsResponses.reduce(
+  const totalProfitPlusMin = financialMutationsResponses.reduce(
     (total, item) => {
       const price = parseFloat(item.amount);
 
       return {
+        ...total,
         plus: price > 0 ? total.plus + price : total.plus,
         min: price < 0 ? total.min - price : total.min,
       };
     },
     { plus: 0, min: 0 },
   );
+
+  const totalProfitOpenPlus = salesInvoicesResponse.reduce((total, item) => {
+    if (item.state !== 'open') return total;
+
+    const price = parseFloat(item.total_price_excl_tax);
+
+    return total + price;
+  }, 0);
+
+  const totalProfitOpenMin = purchaseInvoicesResponse.reduce((total, item) => {
+    if (item.state === 'paid') return total;
+
+    const belongsToPeronalCosts = item.details.some(
+      (detail) => !!findPerson(detail.ledger_account_id),
+    );
+
+    // If this item is booked as a personal cost, skip it for the openMin calculation since it is already calculated as a personal cost.
+    if (belongsToPeronalCosts) return total;
+
+    const price = parseFloat(item.total_price_excl_tax);
+
+    return total + price;
+  }, 0);
+
+  const totalProfit = {
+    ...totalProfitPlusMin,
+    openPlus: totalProfitOpenPlus,
+    openMin: totalProfitOpenMin,
+  };
 
   const personalFinancialMutations = financialMutationsResponses.reduce(
     (total, item) => {

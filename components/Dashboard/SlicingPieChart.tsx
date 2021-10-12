@@ -1,20 +1,9 @@
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useMemo } from 'react';
-import { Person } from '../../pages/api/get-slicing-pie';
+import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
-export interface Props {
-  timeSpent: {
-    [key in Person]: {
-      year: number;
-      fromJuly: number;
-      yearFiltered: number;
-      fromJulyFiltered: number;
-    };
-  };
-}
-
-export function SlicingPieChart(props: Props) {
+export function SlicingPieChart(props: GetSlicingPieResponse) {
   const slicingPieOptions: Highcharts.Options = useMemo(
     () => ({
       title: {

@@ -1,36 +1,11 @@
-import { Person } from '../../pages/api/get-slicing-pie';
+import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
 const currencyFormatter = Intl.NumberFormat('nl', {
   style: 'currency',
   currency: 'EUR',
 });
 
-export interface Props {
-  timeSpent: {
-    [key in Person]: {
-      year: number;
-      fromJuly: number;
-      yearFiltered: number;
-      fromJulyFiltered: number;
-    };
-  };
-  personalFinancialMutations: {
-    [key in Person]: { plus: number; min: number };
-  };
-  personalCosts: { [key in Person]: { plus: number; min: number } };
-  totalTimeSpent: number;
-  totalTimeSpentFiltered: number;
-  totalProfit: { plus: number; min: number };
-  revenuePerAccount: {
-    id: string;
-    company: string;
-    revenue: number;
-    goodwillValuePerson: Person | null;
-    goodwillValue: number;
-  }[];
-}
-
-export function ClientRevenueTable(props: Props) {
+export function ClientRevenueTable(props: GetSlicingPieResponse) {
   return (
     <div className="overflow-x-auto">
       <div className="bg-white shadow-md rounded my-6">
