@@ -49,6 +49,33 @@ export function ClientRevenueTable(props: GetSlicingPieResponse) {
                 </td>
               </tr>
             ))}
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 mb-10">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r font-medium">
+                <div>
+                  <span>Totaal</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r font-medium">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      props.revenuePerAccount.reduce(
+                        (total, account) => total + account.revenue,
+                        0,
+                      ),
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r" />
+              <td className="py-3 px-6 text-right whitespace-nowrap" />
+            </tr>
           </tbody>
         </table>
       </div>
