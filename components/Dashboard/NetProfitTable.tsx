@@ -430,31 +430,31 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
                 scope="col"
               >
                 &nbsp;
               </th>
               <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Totaal
               </th>
               <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Bart
               </th>
               <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Ian
               </th>
               <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Niels
