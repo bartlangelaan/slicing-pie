@@ -14,9 +14,9 @@ axios.defaults.headers = {
 // @todo urencriterium computed maken op basis van uren per week - DONE
 // @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje - DONE
 // @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is - DONE
-// @todo beveiliging api endpoints
-// @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
+// @todo beveiliging api endpoints - DONE
 // @todo Uren inzicht. Intern vs billable
+// @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
 // @todo "hidden" mode

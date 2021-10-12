@@ -397,63 +397,63 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 </div>
               </td>
             </tr>
-            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+            <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r italic">
                 <div>
                   <span>Simuleer extra kosten</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r italic">
                 <div>
                   <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right whitespace-nowrap">
-                <div>
-                  <span>
-                    €{' '}
-                    <input
-                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                      type="number"
-                      value={simulatedExtraCostsBart}
-                      size={60}
-                      onChange={(e) => {
-                        setSimulatedExtraCostsBart(parseFloat(e.target.value));
-                      }}
-                    />
-                  </span>
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsBart}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsBart(parseFloat(e.target.value));
+                    }}
+                  />
                 </div>
               </td>
               <td className="py-3 px-6 text-right whitespace-nowrap">
-                <div>
-                  <span>
-                    €{' '}
-                    <input
-                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                      type="number"
-                      value={simulatedExtraCostsIan}
-                      size={60}
-                      onChange={(e) => {
-                        setSimulatedExtraCostsIan(parseFloat(e.target.value));
-                      }}
-                    />
-                  </span>
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsIan}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsIan(parseFloat(e.target.value));
+                    }}
+                  />
                 </div>
               </td>
               <td className="py-3 px-6 text-right whitespace-nowrap">
-                <div>
-                  <span>
-                    €{' '}
-                    <input
-                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                      type="number"
-                      value={simulatedExtraCostsNiels}
-                      size={60}
-                      onChange={(e) => {
-                        setSimulatedExtraCostsNiels(parseFloat(e.target.value));
-                      }}
-                    />
-                  </span>
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsNiels}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsNiels(parseFloat(e.target.value));
+                    }}
+                  />
                 </div>
               </td>
             </tr>
