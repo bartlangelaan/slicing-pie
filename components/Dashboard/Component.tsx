@@ -3,7 +3,6 @@ import React from 'react';
 import { ClientRevenueTable } from './ClientRevenueTable';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 import { NetProfitTable } from './NetProfitTable';
-import { ProfitBarChart } from './ProfitBarChart';
 import { SlicingPieChart } from './SlicingPieChart';
 
 export function Dashboard() {
@@ -18,7 +17,6 @@ export function Dashboard() {
     <>
       <SlicingPieChart {...data} />
       <NetProfitTable {...data} />
-      <ProfitBarChart {...data} />
       <ClientRevenueTable {...data} />
     </>
   );

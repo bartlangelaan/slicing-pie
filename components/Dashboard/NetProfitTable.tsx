@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
+import { Person } from '../../pages/api/get-slicing-pie';
 
 const config = {
   taxPercentage: 0.371,
@@ -265,6 +268,149 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const netLeftNiels = netProfitNiels - withDrawalsNiels;
 
   const netLeft = netLeftBart + netLeftIan + netLeftNiels;
+
+  const profitOptions: Highcharts.Options = useMemo(() => {
+    return {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: 'Winst per vennoot',
+      },
+      xAxis: {
+        categories: ['Bart', 'Ian', 'Niels'],
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'Winst',
+        },
+      },
+      tooltip: {
+        // eslint-disable-next-line object-shorthand,func-names
+        formatter: function () {
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
+          const val = this;
+
+          if (!val.points) return null;
+
+          const taxes = {
+            Bart: {
+              grossTax: grossTaxBart,
+              applyDeduction: applyDeductionBart,
+              deduction: entrepreneursDeductionBart,
+              netTax: netTaxBart,
+              contributionHIA: contributionHIABart,
+            },
+            Ian: {
+              grossTax: grossTaxIan,
+              applyDeduction: applyDeductionIan,
+              deduction: entrepreneursDeductionIan,
+              netTax: netTaxIan,
+              contributionHIA: contributionHIAIan,
+            },
+            Niels: {
+              grossTax: grossTaxNiels,
+              applyDeduction: applyDeductionNiels,
+              deduction: entrepreneursDeductionNiels,
+              netTax: netTaxNiels,
+              contributionHIA: contributionHIANiels,
+            },
+          };
+
+          const person = val.x as unknown as keyof typeof taxes;
+
+          return `
+            <b>Winstberekening ${person}</b><br/><br/>
+
+            Bruto winst: ${currencyFormatter.format(
+              val.points[0].point.total || 0,
+            )}<br/><br/>
+
+            Kosten: ${currencyFormatter.format(val.points[0].point.y || 0)}<br/>
+            Aftrekposten: ${
+              taxes[person].applyDeduction
+                ? currencyFormatter.format(taxes[person].deduction || 0)
+                : 'Niet van toepassing'
+            }<br/>
+            Bruto inkomstenbelasting: ${currencyFormatter.format(
+              taxes[person].grossTax || 0,
+            )}<br/>
+            Netto inkomstenbelasting: ${currencyFormatter.format(
+              taxes[person].netTax || 0,
+            )}<br/>
+            Bijdrage Zvw en Wlz: ${currencyFormatter.format(
+              taxes[person].contributionHIA || 0,
+            )}<br/><br/>
+
+            <b>Netto winst: ${currencyFormatter.format(
+              val.points[2].point.y || 0,
+            )}</b><br/><br/>
+          `;
+        },
+        pointFormat:
+          '<span style="color:{series.color}">{series.name}</span>: <b>€ {point.y:.2f}</b> ({point.percentage:.0f}%)<br/>',
+        shared: true,
+      },
+      plotOptions: {
+        column: {
+          stacking: 'normal',
+        },
+      },
+      series: [
+        {
+          type: 'column',
+          name: 'Kosten',
+          data: [costsBart, costsIan, costsNiels],
+          color: 'pink',
+        },
+        {
+          type: 'column',
+          name: 'Belasting',
+          data: [
+            netTaxBart + contributionHIABart,
+            netTaxIan + contributionHIAIan,
+            netTaxNiels + contributionHIANiels,
+          ],
+          color: '#5b91b7',
+        },
+        {
+          type: 'column',
+          name: 'Nettowinst*',
+          data: [netProfitBart, netProfitIan, netProfitNiels],
+          color: 'green',
+        },
+      ],
+      credits: {
+        enabled: false,
+      },
+      exporting: {
+        enabled: false,
+      },
+    };
+  }, [
+    applyDeductionBart,
+    applyDeductionIan,
+    applyDeductionNiels,
+    contributionHIABart,
+    contributionHIAIan,
+    contributionHIANiels,
+    costsBart,
+    costsIan,
+    costsNiels,
+    entrepreneursDeductionBart,
+    entrepreneursDeductionIan,
+    entrepreneursDeductionNiels,
+    grossTaxBart,
+    grossTaxIan,
+    grossTaxNiels,
+    netProfitBart,
+    netProfitIan,
+    netProfitNiels,
+    netTaxBart,
+    netTaxIan,
+    netTaxNiels,
+  ]);
 
   return (
     <div>
@@ -1071,6 +1217,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           </tbody>
         </table>
       </div>
+      <HighchartsReact highcharts={Highcharts} options={profitOptions} />
     </div>
   );
 }
