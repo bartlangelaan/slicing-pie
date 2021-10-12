@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
-import { Person } from '../../pages/api/get-slicing-pie';
 
 const config = {
   taxPercentage: 0.371,
