@@ -424,7 +424,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   ]);
 
   return (
-    <div>
+    <>
       <div className="bg-white shadow-lg rounded mt-12">
         <table className="w-full table-auto">
           <thead>
@@ -1231,9 +1231,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           </tbody>
         </table>
       </div>
-      <div className="mt-12 shadow-lg p-8 bg-white">
+      <div className="mt-12 shadow-lg p-8 bg-white flex justify-center">
         <HighchartsReact highcharts={Highcharts} options={profitOptions} />
       </div>
-    </div>
+    </>
   );
 }
