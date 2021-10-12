@@ -12,7 +12,7 @@ axios.defaults.headers = {
 // @todo totalen bij omzet per klant tabel - DONE
 // @todo urencriterium computed maken op basis van uren per week - DONE
 // @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje - DONE
-// @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is
+// @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is - DONE
 // @todo beveiliging api endpoints
 // @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
 // @todo filter alles op 2021

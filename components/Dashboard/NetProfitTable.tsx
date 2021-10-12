@@ -54,6 +54,10 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const [applyDeductionIan, setApplyDeductionIan] = useState(false);
   const [applyDeductionNiels, setApplyDeductionNiels] = useState(false);
 
+  const [simulatedExtraCostsBart, setSimulatedExtraCostsBart] = useState(0);
+  const [simulatedExtraCostsIan, setSimulatedExtraCostsIan] = useState(0);
+  const [simulatedExtraCostsNiels, setSimulatedExtraCostsNiels] = useState(0);
+
   const weeksSinceJuly =
     (Date.now() - new Date('2021-07-01').getTime()) / (7 * 24 * 60 * 60 * 1000);
 
@@ -105,10 +109,22 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
 
   const costsBart =
-    props.personalCosts.bart.plus - props.personalCosts.bart.min;
-  const costsIan = props.personalCosts.ian.plus - props.personalCosts.ian.min;
+    props.personalCosts.bart.plus -
+    props.personalCosts.bart.min +
+    (simulatedExtraCostsBart || 0);
+  const costsIan =
+    props.personalCosts.ian.plus -
+    props.personalCosts.ian.min +
+    (simulatedExtraCostsIan || 0);
   const costsNiels =
-    props.personalCosts.niels.plus - props.personalCosts.niels.min;
+    props.personalCosts.niels.plus -
+    props.personalCosts.niels.min +
+    (simulatedExtraCostsNiels || 0);
+
+  const simulatedExtraCosts =
+    (simulatedExtraCostsBart || 0) +
+    (simulatedExtraCostsIan || 0) +
+    (simulatedExtraCostsNiels || 0);
 
   const totalCosts = costsBart + costsIan + costsNiels;
 
@@ -378,6 +394,66 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right whitespace-nowrap">
                 <div>
                   <span>{currencyFormatter.format(costsNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>Simuleer extra kosten</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>
+                    €{' '}
+                    <input
+                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      type="number"
+                      value={simulatedExtraCostsBart}
+                      size={60}
+                      onChange={(e) => {
+                        setSimulatedExtraCostsBart(parseFloat(e.target.value));
+                      }}
+                    />
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>
+                    €{' '}
+                    <input
+                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      type="number"
+                      value={simulatedExtraCostsIan}
+                      size={60}
+                      onChange={(e) => {
+                        setSimulatedExtraCostsIan(parseFloat(e.target.value));
+                      }}
+                    />
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right whitespace-nowrap">
+                <div>
+                  <span>
+                    €{' '}
+                    <input
+                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      type="number"
+                      value={simulatedExtraCostsNiels}
+                      size={60}
+                      onChange={(e) => {
+                        setSimulatedExtraCostsNiels(parseFloat(e.target.value));
+                      }}
+                    />
+                  </span>
                 </div>
               </td>
             </tr>
