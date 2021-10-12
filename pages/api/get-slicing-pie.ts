@@ -9,14 +9,15 @@ axios.defaults.headers = {
 };
 
 // @todo openstaande facturen meenemen als losse regel (+ als winst?) - DONE
-// @todo urencriterium computed maken op basis van uren per week
-// @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje
+// @todo totalen bij omzet per klant tabel - DONE
+// @todo urencriterium computed maken op basis van uren per week - DONE
+// @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje - DONE
 // @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is
 // @todo beveiliging api endpoints
-// @todo "hidden" mode
-// @todo totalen bij omzet per klant tabel
+// @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
+// @todo "hidden" mode
 
 const client = redis.createClient({
   url: process.env.REDIS,

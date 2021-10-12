@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
+const config = {
+  taxPercentage: 0.371,
+  HIAPercentage: 0.0575,
+  hourCriteriumFromJuly: 1225 - 24 * 26,
+  hourCriteriumFromJulyUnfitForWork: 800 - 16 * 26,
+  minHoursPerWeekFromJuly: (1225 - 24 * 26) / 26,
+  minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
+};
+
 const currencyFormatter = Intl.NumberFormat('nl', {
   style: 'currency',
   currency: 'EUR',
@@ -9,9 +18,10 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 function calculateSelfEmployedDeduction(
   grossProfit: number,
   hourCriterium: boolean,
+  applyDeduction: boolean,
   unfitForWork: boolean,
 ) {
-  if (!hourCriterium || unfitForWork) return 0;
+  if (!hourCriterium || !applyDeduction || unfitForWork) return 0;
 
   if (grossProfit < 6670) return grossProfit;
 
@@ -21,9 +31,10 @@ function calculateSelfEmployedDeduction(
 function calculateStartupDeduction(
   grossProfit: number,
   hourCriterium: boolean,
+  applyDeduction: boolean,
   unfitForWork: boolean,
 ) {
-  if (!hourCriterium) return 0;
+  if (!hourCriterium || !applyDeduction) return 0;
 
   const maxDeduction = unfitForWork ? 12000 : 2123;
 
@@ -38,10 +49,38 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const [unfitForWorkIan, setUnfitForWorkIan] = useState(true);
   const [unfitForWorkNiels, setUnfitForWorkNiels] = useState(false);
 
-  const [hourCriteriumAll, setHourCriteriumAll] = useState(false);
-  const [hourCriteriumBart, setHourCriteriumBart] = useState(false);
-  const [hourCriteriumIan, setHourCriteriumIan] = useState(false);
-  const [hourCriteriumNiels, setHourCriteriumNiels] = useState(false);
+  const [applyDeductionAll, setApplyDeductionAll] = useState(false);
+  const [applyDeductionBart, setApplyDeductionBart] = useState(false);
+  const [applyDeductionIan, setApplyDeductionIan] = useState(false);
+  const [applyDeductionNiels, setApplyDeductionNiels] = useState(false);
+
+  const weeksSinceJuly =
+    (Date.now() - new Date('2021-07-01').getTime()) / (7 * 24 * 60 * 60 * 1000);
+
+  const hoursPerWeekSinceJulyBart =
+    props.timeSpent.bart.fromJuly / weeksSinceJuly;
+  const hoursPerWeekSinceJulyIan =
+    props.timeSpent.ian.fromJuly / weeksSinceJuly;
+  const hoursPerWeekSinceJulyNiels =
+    props.timeSpent.niels.fromJuly / weeksSinceJuly;
+
+  const hourCriteriumBart =
+    (unfitForWorkBart &&
+      hoursPerWeekSinceJulyBart > config.minHoursPerWeekUnfitForWork) ||
+    (!unfitForWorkBart &&
+      hoursPerWeekSinceJulyBart > config.minHoursPerWeekFromJuly);
+  const hourCriteriumIan =
+    (unfitForWorkIan &&
+      hoursPerWeekSinceJulyIan > config.minHoursPerWeekUnfitForWork) ||
+    (!unfitForWorkIan &&
+      hoursPerWeekSinceJulyIan > config.minHoursPerWeekFromJuly);
+  const hourCriteriumNiels =
+    (unfitForWorkNiels &&
+      hoursPerWeekSinceJulyNiels > config.minHoursPerWeekUnfitForWork) ||
+    (!unfitForWorkNiels &&
+      hoursPerWeekSinceJulyNiels > config.minHoursPerWeekFromJuly);
+  const hourCriteriumAll =
+    hourCriteriumBart && hourCriteriumIan && hourCriteriumNiels;
 
   const totalProfit =
     props.totalProfit.plus -
@@ -59,9 +98,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     totalProfit *
       (props.timeSpent.niels.yearFiltered / props.totalTimeSpentFiltered) || 0;
 
-  const grossTaxBart = grossProfitBart * 0.371;
-  const grossTaxIan = grossProfitIan * 0.371;
-  const grossTaxNiels = grossProfitNiels * 0.371;
+  const grossTaxBart = grossProfitBart * config.taxPercentage;
+  const grossTaxIan = grossProfitIan * config.taxPercentage;
+  const grossTaxNiels = grossProfitNiels * config.taxPercentage;
 
   const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
 
@@ -95,16 +134,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const selfEmployedDeductionBart = calculateSelfEmployedDeduction(
     grossProfitAfterExemptionBart,
     hourCriteriumBart,
+    applyDeductionBart,
     unfitForWorkBart,
   );
   const selfEmployedDeductionIan = calculateSelfEmployedDeduction(
     grossProfitAfterExemptionIan,
     hourCriteriumIan,
+    applyDeductionIan,
     unfitForWorkIan,
   );
   const selfEmployedDeductionNiels = calculateSelfEmployedDeduction(
     grossProfitAfterExemptionNiels,
     hourCriteriumNiels,
+    applyDeductionNiels,
     unfitForWorkNiels,
   );
 
@@ -116,16 +158,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const startupDeductionBart = calculateStartupDeduction(
     grossProfitAfterExemptionBart - selfEmployedDeductionBart,
     hourCriteriumBart,
+    applyDeductionBart,
     unfitForWorkBart,
   );
   const startupDeductionIan = calculateStartupDeduction(
     grossProfitAfterExemptionIan - selfEmployedDeductionIan,
     hourCriteriumIan,
+    applyDeductionIan,
     unfitForWorkIan,
   );
   const startupDeductionNiels = calculateStartupDeduction(
     grossProfitAfterExemptionNiels - selfEmployedDeductionNiels,
     hourCriteriumNiels,
+    applyDeductionNiels,
     unfitForWorkNiels,
   );
 
@@ -162,15 +207,18 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitAfterDeductionIan +
     grossProfitAfterDeductionNiels;
 
-  const netTaxBart = grossProfitAfterDeductionBart * 0.371;
-  const netTaxIan = grossProfitAfterDeductionIan * 0.371;
-  const netTaxNiels = grossProfitAfterDeductionNiels * 0.371;
+  const netTaxBart = grossProfitAfterDeductionBart * config.taxPercentage;
+  const netTaxIan = grossProfitAfterDeductionIan * config.taxPercentage;
+  const netTaxNiels = grossProfitAfterDeductionNiels * config.taxPercentage;
 
   const netTax = netTaxBart + netTaxIan + netTaxNiels;
 
-  const contributionHIABart = grossProfitAfterDeductionBart * 0.0575;
-  const contributionHIAIan = grossProfitAfterDeductionIan * 0.0575;
-  const contributionHIANiels = grossProfitAfterDeductionNiels * 0.0575;
+  const contributionHIABart =
+    grossProfitAfterDeductionBart * config.HIAPercentage;
+  const contributionHIAIan =
+    grossProfitAfterDeductionIan * config.HIAPercentage;
+  const contributionHIANiels =
+    grossProfitAfterDeductionNiels * config.HIAPercentage;
 
   const contributionHIA =
     contributionHIABart + contributionHIAIan + contributionHIANiels;
@@ -203,16 +251,41 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const netLeft = netLeftBart + netLeftIan + netLeftNiels;
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       <div className="bg-white shadow-md rounded my-6">
         <table className="min-w-max w-full table-auto">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th className="py-3 px-6 text-right">&nbsp;</th>
-              <th className="py-3 px-6 text-right">Totaal</th>
-              <th className="py-3 px-6 text-right">Bart</th>
-              <th className="py-3 px-6 text-right">Ian</th>
-              <th className="py-3 px-6 text-right">Niels</th>
+              <th
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                scope="col"
+              >
+                &nbsp;
+              </th>
+              <th
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                scope="col"
+              >
+                Totaal
+              </th>
+              <th
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                scope="col"
+              >
+                Bart
+              </th>
+              <th
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                scope="col"
+              >
+                Ian
+              </th>
+              <th
+                className="py-3 px-6 text-right top-0 sticky bg-gray-200"
+                scope="col"
+              >
+                Niels
+              </th>
             </tr>
           </thead>
           <tbody className="text-gray-600 text-sm font-light">
@@ -248,7 +321,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right whitespace-nowrap border-r">
                 <div>
-                  <span>Bruto inkomstenbelasting (37.1%)</span>
+                  <span>
+                    Bruto inkomstenbelasting ({config.taxPercentage * 100}%)
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right whitespace-nowrap border-r">
@@ -495,15 +570,121 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-center whitespace-nowrap border-r">
                 <input
                   type="checkbox"
-                  className="form-checkbox rounded"
+                  className="form-checkbox rounded bg-gray-200"
                   checked={hourCriteriumAll}
+                  disabled
+                />
+              </td>
+              <td className="py-3 px-6 text-center whitespace-nowrap">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded bg-gray-200"
+                    checked={hourCriteriumBart}
+                    disabled
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkBart
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyBart.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.bart.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkBart
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center whitespace-nowrap">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded bg-gray-200"
+                    checked={hourCriteriumIan}
+                    disabled
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkIan
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyIan.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.ian.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkIan
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center whitespace-nowrap">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded bg-gray-200"
+                    checked={hourCriteriumNiels}
+                    disabled
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkNiels
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyNiels.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {props.timeSpent.niels.fromJuly.toFixed(0)} /{' '}
+                    {(unfitForWorkNiels
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+                <div>
+                  <span className="font-medium">Pas ondernemersaftrek toe</span>
+                  <div className="text-xs italic">
+                    Wel of niet de zelfstandigenaftrek & startersaftrek
+                    toepassen?
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center whitespace-nowrap border-r">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded"
+                  checked={applyDeductionAll}
                   onChange={() => {
-                    setHourCriteriumAll((currentHourCriteriumAll) => {
-                      setHourCriteriumBart(!currentHourCriteriumAll);
-                      setHourCriteriumIan(!currentHourCriteriumAll);
-                      setHourCriteriumNiels(!currentHourCriteriumAll);
+                    setApplyDeductionAll((currentApplyDeductionAll) => {
+                      setApplyDeductionBart(!currentApplyDeductionAll);
+                      setApplyDeductionIan(!currentApplyDeductionAll);
+                      setApplyDeductionNiels(!currentApplyDeductionAll);
 
-                      return !currentHourCriteriumAll;
+                      return !currentApplyDeductionAll;
                     });
                   }}
                 />
@@ -513,29 +694,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     type="checkbox"
                     className="form-checkbox rounded"
-                    checked={hourCriteriumBart}
+                    checked={applyDeductionBart}
                     onChange={() => {
-                      setHourCriteriumBart(
-                        (currentHourCriteriumBart) => !currentHourCriteriumBart,
+                      setApplyDeductionBart(
+                        (currentApplyDeductionBart) =>
+                          !currentApplyDeductionBart,
                       );
                     }}
                   />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkBart
-                      ? (800 - 16 * 26) / 26
-                      : (1225 - 24 * 26) / 26
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    {props.timeSpent.bart.fromJuly.toFixed(0)} /{' '}
-                    {(unfitForWorkBart
-                      ? 800 - 16 * 26
-                      : 1225 - 24 * 26
-                    ).toFixed(0)}{' '}
-                    uren geboekt
-                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-center whitespace-nowrap">
@@ -543,28 +709,13 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     type="checkbox"
                     className="form-checkbox rounded"
-                    checked={hourCriteriumIan}
+                    checked={applyDeductionIan}
                     onChange={() => {
-                      setHourCriteriumIan(
-                        (currentHourCriteriumIan) => !currentHourCriteriumIan,
+                      setApplyDeductionIan(
+                        (currentApplyDeductionIan) => !currentApplyDeductionIan,
                       );
                     }}
                   />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkIan
-                      ? (800 - 16 * 26) / 26
-                      : (1225 - 24 * 26) / 26
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    {props.timeSpent.ian.fromJuly.toFixed(0)} /{' '}
-                    {(unfitForWorkIan ? 800 - 16 * 26 : 1225 - 24 * 26).toFixed(
-                      0,
-                    )}{' '}
-                    uren geboekt
-                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-center whitespace-nowrap">
@@ -572,30 +723,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     type="checkbox"
                     className="form-checkbox rounded"
-                    checked={hourCriteriumNiels}
+                    checked={applyDeductionNiels}
                     onChange={() => {
-                      setHourCriteriumNiels(
-                        (currentHourCriteriumNiels) =>
-                          !currentHourCriteriumNiels,
+                      setApplyDeductionNiels(
+                        (currentApplyDeductionNiels) =>
+                          !currentApplyDeductionNiels,
                       );
                     }}
                   />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkNiels
-                      ? (800 - 16 * 26) / 26
-                      : (1225 - 24 * 26) / 26
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    {props.timeSpent.niels.fromJuly.toFixed(0)} /{' '}
-                    {(unfitForWorkNiels
-                      ? 800 - 16 * 26
-                      : 1225 - 24 * 26
-                    ).toFixed(0)}{' '}
-                    uren geboekt
-                  </div>
                 </div>
               </td>
             </tr>
@@ -743,7 +878,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right whitespace-nowrap border-r">
                 <div>
-                  <span>Netto inkomstenbelasting (37.1%)</span>
+                  <span>
+                    Netto inkomstenbelasting ({config.taxPercentage * 100}%)
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right whitespace-nowrap border-r">
