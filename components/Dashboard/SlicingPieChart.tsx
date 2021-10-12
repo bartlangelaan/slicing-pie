@@ -7,7 +7,10 @@ export function SlicingPieChart(props: GetSlicingPieResponse) {
   const slicingPieOptions: Highcharts.Options = useMemo(
     () => ({
       title: {
-        text: 'Slicing pie',
+        text: '',
+      },
+      chart: {
+        backgroundColor: 'transparent',
       },
       series: [
         {

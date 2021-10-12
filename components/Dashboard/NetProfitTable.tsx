@@ -376,7 +376,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
         },
         {
           type: 'column',
-          name: 'Nettowinst*',
+          name: 'Nettowinst',
           data: [netProfitBart, netProfitIan, netProfitNiels],
           color: 'green',
         },
@@ -415,7 +415,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   return (
     <div>
       <div className="bg-white shadow-md rounded my-6">
-        <table className="min-w-max w-full table-auto">
+        <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th
@@ -452,58 +452,58 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           </thead>
           <tbody className="text-gray-600 text-sm font-light">
             <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Bruto winst</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(totalProfit)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossProfitBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossProfitIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossProfitNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>
                     Bruto inkomstenbelasting ({config.taxPercentage * 100}%)
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>{currencyFormatter.format(grossTax)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossTaxBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossTaxIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossTaxNiels)}</span>
                 </div>
@@ -515,46 +515,46 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td colSpan={3} />
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Kosten</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(totalCosts)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(costsBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(costsIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(costsNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r italic">
+              <td className="py-3 px-6 text-right border-r italic">
                 <div>
                   <span>Simuleer extra kosten</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r italic">
+              <td className="py-3 px-6 text-right border-r italic">
                 <div>
                   <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div className="relative ml-auto w-max">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span>&euro;</span>
@@ -570,7 +570,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div className="relative ml-auto w-max">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span>&euro;</span>
@@ -586,7 +586,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div className="relative ml-auto w-max">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span>&euro;</span>
@@ -604,12 +604,12 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Subtotaal bruto winst</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>
                     {currencyFormatter.format(
@@ -620,21 +620,21 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitBart - costsBart)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitIan - costsIan)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitNiels - costsNiels)}
@@ -648,63 +648,63 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td colSpan={3} />
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Mkb-winstvrijstelling</span>
                   <div className="text-xs italic">Altijd 14%</div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(profitExemption)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(profitExemptionBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(profitExemptionIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(profitExemptionNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Subtotaal bruto winst</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterExemption)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterExemptionBart)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterExemptionIan)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterExemptionNiels)}
@@ -718,12 +718,12 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td colSpan={3} />
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">(Deels) arbeidsongeschikt</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-center border-r">
                 <input
                   type="checkbox"
                   className="form-checkbox rounded"
@@ -739,7 +739,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   }}
                 />
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -753,7 +753,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -767,7 +767,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -783,13 +783,16 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Voldoet aan urencriterium</span>
-                  <div className="text-xs italic">1 juli t/m 31 december</div>
+                  <div className="text-xs italic">
+                    Automatisch berekend o.b.v. geschreven uren tussen 1 juli en
+                    31 december
+                  </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-center border-r">
                 <input
                   type="checkbox"
                   className="form-checkbox rounded bg-gray-200"
@@ -797,7 +800,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   disabled
                 />
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -826,7 +829,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -855,7 +858,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -886,7 +889,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Pas ondernemersaftrek toe</span>
                   <div className="text-xs italic">
@@ -895,7 +898,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-center border-r">
                 <input
                   type="checkbox"
                   className="form-checkbox rounded"
@@ -911,7 +914,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   }}
                 />
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -926,7 +929,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -940,7 +943,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   />
                 </div>
               </td>
-              <td className="py-3 px-6 text-center whitespace-nowrap">
+              <td className="py-3 px-6 text-center">
                 <div>
                   <input
                     type="checkbox"
@@ -957,7 +960,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Zelfstandigenaftrek</span>
                   <div className="text-xs italic">
@@ -966,28 +969,28 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(selfEmployedDeduction)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(selfEmployedDeductionBart)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(selfEmployedDeductionIan)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(selfEmployedDeductionNiels)}
@@ -996,7 +999,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Startersaftrek</span>
                   <div className="text-xs italic">
@@ -1005,57 +1008,57 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(startupDeduction)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(startupDeductionBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(startupDeductionIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(startupDeductionNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Subtotaal bruto winst</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterDeduction)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterDeductionBart)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterDeductionIan)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterDeductionNiels)}
@@ -1069,85 +1072,85 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td colSpan={3} />
             </tr>
             <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Netto winst</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(netProfit)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netProfitBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netProfitIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netProfitNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>
                     Netto inkomstenbelasting ({config.taxPercentage * 100}%)
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>{currencyFormatter.format(netTax)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netTaxBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netTaxIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netTaxNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Inkomensafhankelijke bijdrage Zvw en Wlz (5.75%)</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>{currencyFormatter.format(contributionHIA)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(contributionHIABart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(contributionHIAIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(contributionHIANiels)}</span>
                 </div>
@@ -1159,56 +1162,56 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td colSpan={3} />
             </tr>
             <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Over na onttrekkingen</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
                     {currencyFormatter.format(netLeft)}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netLeftBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netLeftIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(netLeftNiels)}</span>
                 </div>
               </td>
             </tr>
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Onttrekkingen</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap border-r">
+              <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>{currencyFormatter.format(totalWithDrawals)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(withDrawalsBart)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(withDrawalsIan)}</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right whitespace-nowrap">
+              <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(withDrawalsNiels)}</span>
                 </div>

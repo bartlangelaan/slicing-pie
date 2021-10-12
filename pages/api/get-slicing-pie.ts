@@ -15,11 +15,12 @@ axios.defaults.headers = {
 // @todo urencriterium vinkje aanpassen naar "aftrek toepassen" vinkje - DONE
 // @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is - DONE
 // @todo beveiliging api endpoints - DONE
-// @todo Uren inzicht. Intern vs billable
-// @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
+// @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart - DONE
+// @todo Algemene layout - DONE
 // @todo filter alles op 2021
-// @todo voorbereiden 2022
 // @todo "hidden" mode
+// @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten?
+// @todo voorbereiden 2022
 
 const client = redis.createClient({
   url: process.env.REDIS,

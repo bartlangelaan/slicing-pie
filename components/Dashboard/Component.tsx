@@ -1,5 +1,6 @@
 import useAxios from 'axios-hooks';
 import React from 'react';
+import { Loader } from '../Loader';
 import { ClientRevenueTable } from './ClientRevenueTable';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 import { NetProfitTable } from './NetProfitTable';
@@ -11,7 +12,7 @@ export function Dashboard() {
     url: '/api/get-slicing-pie',
   });
 
-  if (!data) return <h2>Loading...</h2>;
+  if (!data) return <Loader />;
 
   return (
     <>
