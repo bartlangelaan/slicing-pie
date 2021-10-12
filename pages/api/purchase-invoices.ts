@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { basicAuthCheck } from '../../utils/access';
 
-export default async (_req: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  await basicAuthCheck(req, res);
+
   const response = await axios.get(
     'https://moneybird.com/api/v2/313185156605150255/documents/purchase_invoices.json',
     {

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { setup, RedisStore } from 'axios-cache-adapter';
 import redis from 'redis';
+import { basicAuthCheck } from '../../utils/access';
 
 axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
 axios.defaults.headers = {
@@ -15,6 +16,7 @@ axios.defaults.headers = {
 // @todo invoerveld voor kosten om client side uit te kunnen rekenen wat netto winst is - DONE
 // @todo beveiliging api endpoints
 // @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart
+// @todo Uren inzicht. Intern vs billable
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
 // @todo "hidden" mode
@@ -115,7 +117,9 @@ export async function requestAll<T>(
   return res.map((req) => req.data).flat();
 }
 
-export default async (_req: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  await basicAuthCheck(req, res);
+
   const financialMutationsSyncResponse = await requestAll<
     {
       id: string;

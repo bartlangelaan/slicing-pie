@@ -413,7 +413,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span>
                     €{' '}
                     <input
-                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                       type="number"
                       value={simulatedExtraCostsBart}
                       size={60}
@@ -429,7 +429,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span>
                     €{' '}
                     <input
-                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                       type="number"
                       value={simulatedExtraCostsIan}
                       size={60}
@@ -445,7 +445,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span>
                     €{' '}
                     <input
-                      className="appearance-none w-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                       type="number"
                       value={simulatedExtraCostsNiels}
                       size={60}

@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { basicAuthCheck } from '../../utils/access';
 import { api, requestAll } from './get-slicing-pie';
 
-export default async (_req: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  await basicAuthCheck(req, res);
+
   const financialMutationsSyncResponse = await requestAll<
     {
       id: string;
