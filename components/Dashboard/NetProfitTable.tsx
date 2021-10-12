@@ -287,6 +287,17 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
         },
       },
       tooltip: {
+        borderColor: '#3790c3',
+        backgroundColor: 'white',
+        followPointer: false,
+        borderRadius: 2,
+        outide: true,
+        useHTML: true,
+        style: {
+          fontFamily: 'Roboto',
+          fontSize: '15px',
+          marginTop: -100,
+        },
         // eslint-disable-next-line object-shorthand,func-names
         formatter: function () {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -331,12 +342,12 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             Aftrekposten: ${
               taxes[person].applyDeduction
                 ? currencyFormatter.format(taxes[person].deduction || 0)
-                : 'Niet van toepassing'
+                : 'N.v.t.'
             }<br/>
-            Bruto inkomstenbelasting: ${currencyFormatter.format(
+            Bruto IB: ${currencyFormatter.format(
               taxes[person].grossTax || 0,
             )}<br/>
-            Netto inkomstenbelasting: ${currencyFormatter.format(
+            Netto IB: ${currencyFormatter.format(
               taxes[person].netTax || 0,
             )}<br/>
             Bijdrage Zvw en Wlz: ${currencyFormatter.format(
