@@ -61,19 +61,39 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const [applyDeductionIan, setApplyDeductionIan] = useState(false);
   const [applyDeductionNiels, setApplyDeductionNiels] = useState(false);
 
+  const [simulatedExtraProfit, setSimulatedExtraProfit] = useState(0);
+
   const [simulatedExtraCostsBart, setSimulatedExtraCostsBart] = useState(0);
   const [simulatedExtraCostsIan, setSimulatedExtraCostsIan] = useState(0);
   const [simulatedExtraCostsNiels, setSimulatedExtraCostsNiels] = useState(0);
 
+  const [simulatedExtraHoursBart, setSimulatedExtraHoursBart] = useState(0);
+  const [simulatedExtraHoursIan, setSimulatedExtraHoursIan] = useState(0);
+  const [simulatedExtraHoursNiels, setSimulatedExtraHoursNiels] = useState(0);
+
   const weeksSinceJuly =
     (Date.now() - new Date('2021-07-01').getTime()) / (7 * 24 * 60 * 60 * 1000);
 
-  const hoursPerWeekSinceJulyBart =
-    props.timeSpent.bart.fromJuly / weeksSinceJuly;
-  const hoursPerWeekSinceJulyIan =
-    props.timeSpent.ian.fromJuly / weeksSinceJuly;
-  const hoursPerWeekSinceJulyNiels =
-    props.timeSpent.niels.fromJuly / weeksSinceJuly;
+  const simulatedExtraHours =
+    simulatedExtraHoursBart + simulatedExtraHoursIan + simulatedExtraHoursNiels;
+
+  const hoursBart =
+    props.timeSpent.bart.yearFiltered + (simulatedExtraHoursBart || 0);
+  const hoursIan =
+    props.timeSpent.ian.yearFiltered + (simulatedExtraHoursIan || 0);
+  const hoursNiels =
+    props.timeSpent.niels.yearFiltered + (simulatedExtraHoursNiels || 0);
+
+  const hoursFromJulyBart =
+    props.timeSpent.bart.fromJuly + (simulatedExtraHoursBart || 0);
+  const hoursFromJulyIan =
+    props.timeSpent.ian.fromJuly + (simulatedExtraHoursIan || 0);
+  const hoursFromJulyNiels =
+    props.timeSpent.niels.fromJuly + (simulatedExtraHoursNiels || 0);
+
+  const hoursPerWeekSinceJulyBart = hoursFromJulyBart / weeksSinceJuly;
+  const hoursPerWeekSinceJulyIan = hoursFromJulyIan / weeksSinceJuly;
+  const hoursPerWeekSinceJulyNiels = hoursFromJulyNiels / weeksSinceJuly;
 
   const hourCriteriumBart =
     (unfitForWorkBart &&
@@ -97,17 +117,15 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.plus -
     props.totalProfit.min +
     props.totalProfit.openPlus -
-    props.totalProfit.openMin;
+    props.totalProfit.openMin +
+    (simulatedExtraProfit || 0);
 
   const grossProfitBart =
-    totalProfit *
-      (props.timeSpent.bart.yearFiltered / props.totalTimeSpentFiltered) || 0;
+    totalProfit * (hoursBart / props.totalTimeSpentFiltered) || 0;
   const grossProfitIan =
-    totalProfit *
-      (props.timeSpent.ian.yearFiltered / props.totalTimeSpentFiltered) || 0;
+    totalProfit * (hoursIan / props.totalTimeSpentFiltered) || 0;
   const grossProfitNiels =
-    totalProfit *
-      (props.timeSpent.niels.yearFiltered / props.totalTimeSpentFiltered) || 0;
+    totalProfit * (hoursNiels / props.totalTimeSpentFiltered) || 0;
 
   const grossTaxBart = grossProfitBart * config.taxPercentage;
   const grossTaxIan = grossProfitIan * config.taxPercentage;
@@ -467,6 +485,143 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             </tr>
           </thead>
           <tbody className="text-gray-600 text-sm font-light">
+            <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r italic">
+                <div>
+                  <span>Simuleer extra winst</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r italic">
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraProfit || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraProfit(parseFloat(e.target.value));
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right" />
+              <td className="py-3 px-6 text-right" />
+              <td className="py-3 px-6 text-right" />
+            </tr>
+            <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r italic">
+                <div>
+                  <span>Simuleer extra kosten</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r italic">
+                <div>
+                  <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsBart || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsBart(parseFloat(e.target.value));
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsIan || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsIan(parseFloat(e.target.value));
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span>&euro;</span>
+                  </div>
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraCostsNiels || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraCostsNiels(parseFloat(e.target.value));
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r italic">
+                <div>
+                  <span>Simuleer extra uren</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r italic">
+                <div>
+                  <span>{simulatedExtraHours}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraHoursBart || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraHoursBart(parseInt(e.target.value, 10));
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraHoursIan || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraHoursIan(parseInt(e.target.value, 10));
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div className="relative ml-auto w-max">
+                  <input
+                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    type="number"
+                    value={simulatedExtraHoursNiels || 0}
+                    size={60}
+                    onChange={(e) => {
+                      setSimulatedExtraHoursNiels(parseInt(e.target.value, 10));
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
               <td className="py-3 px-6 text-right border-r">
                 <div>
@@ -556,66 +711,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(costsNiels)}</span>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r italic">
-                <div>
-                  <span>Simuleer extra kosten</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r italic">
-                <div>
-                  <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div className="relative ml-auto w-max">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span>&euro;</span>
-                  </div>
-                  <input
-                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                    type="number"
-                    value={simulatedExtraCostsBart || 0}
-                    size={60}
-                    onChange={(e) => {
-                      setSimulatedExtraCostsBart(parseFloat(e.target.value));
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div className="relative ml-auto w-max">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span>&euro;</span>
-                  </div>
-                  <input
-                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                    type="number"
-                    value={simulatedExtraCostsIan || 0}
-                    size={60}
-                    onChange={(e) => {
-                      setSimulatedExtraCostsIan(parseFloat(e.target.value));
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div className="relative ml-auto w-max">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span>&euro;</span>
-                  </div>
-                  <input
-                    className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                    type="number"
-                    value={simulatedExtraCostsNiels || 0}
-                    size={60}
-                    onChange={(e) => {
-                      setSimulatedExtraCostsNiels(parseFloat(e.target.value));
-                    }}
-                  />
                 </div>
               </td>
             </tr>
@@ -836,7 +931,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     nu {hoursPerWeekSinceJulyBart.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {props.timeSpent.bart.fromJuly.toFixed(0)} /{' '}
+                    {hoursFromJulyBart.toFixed(0)} /{' '}
                     {(unfitForWorkBart
                       ? config.hourCriteriumFromJulyUnfitForWork
                       : config.hourCriteriumFromJuly
@@ -865,7 +960,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     nu {hoursPerWeekSinceJulyIan.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {props.timeSpent.ian.fromJuly.toFixed(0)} /{' '}
+                    {hoursFromJulyIan.toFixed(0)} /{' '}
                     {(unfitForWorkIan
                       ? config.hourCriteriumFromJulyUnfitForWork
                       : config.hourCriteriumFromJuly
@@ -894,7 +989,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     nu {hoursPerWeekSinceJulyNiels.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {props.timeSpent.niels.fromJuly.toFixed(0)} /{' '}
+                    {hoursFromJulyNiels.toFixed(0)} /{' '}
                     {(unfitForWorkNiels
                       ? config.hourCriteriumFromJulyUnfitForWork
                       : config.hourCriteriumFromJuly

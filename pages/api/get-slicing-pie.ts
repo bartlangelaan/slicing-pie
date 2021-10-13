@@ -19,7 +19,8 @@ axios.defaults.headers = {
 // @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart - DONE
 // @todo Algemene layout - DONE
 // @todo cache localStorage met refresh - DONE
-// @todo "hidden" mode
+// @todo "hidden" mode - DONE
+// @todo meer velden om te simuleren (uren, omzet/winst) - DONE
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo filter alles op 2021
 // @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten?
