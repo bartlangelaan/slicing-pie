@@ -578,7 +578,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                     type="number"
-                    value={simulatedExtraCostsBart}
+                    value={simulatedExtraCostsBart || 0}
                     size={60}
                     onChange={(e) => {
                       setSimulatedExtraCostsBart(parseFloat(e.target.value));
@@ -594,7 +594,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                     type="number"
-                    value={simulatedExtraCostsIan}
+                    value={simulatedExtraCostsIan || 0}
                     size={60}
                     onChange={(e) => {
                       setSimulatedExtraCostsIan(parseFloat(e.target.value));
@@ -610,7 +610,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <input
                     className="appearance-none w-28 bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 pl-6 pr-2 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
                     type="number"
-                    value={simulatedExtraCostsNiels}
+                    value={simulatedExtraCostsNiels || 0}
                     size={60}
                     onChange={(e) => {
                       setSimulatedExtraCostsNiels(parseFloat(e.target.value));

@@ -11,6 +11,11 @@ import { GetSlicingPieResponse } from './Dashboard/GetSlicingPieResponse';
 
 function useSlicingPieContextValue() {
   const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState(true);
+  const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
+    typeof window !== 'undefined'
+      ? !!window.localStorage.getItem('slicing-pie.hidden-mode')
+      : false,
+  );
 
   const dataStringFromCache =
     typeof window !== 'undefined'
@@ -27,8 +32,16 @@ function useSlicingPieContextValue() {
   }
 
   const [data, setData] = useState<GetSlicingPieResponse | null>(dataFromCache);
+  const [hiddenModeData, setHiddenModeData] =
+    useState<GetSlicingPieResponse | null>(null);
 
   const fetchData = useCallback(async () => {
+    axios
+      .get<GetSlicingPieResponse>('/api/get-slicing-pie?hidden=true')
+      .then((response) => {
+        setHiddenModeData(response.data);
+      });
+
     setIsRefreshingSlicingPie(true);
 
     const response = await axios.get<GetSlicingPieResponse>(
@@ -50,11 +63,20 @@ function useSlicingPieContextValue() {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    localStorage.setItem(
+      'slicing-pie.hidden-mode',
+      hiddenModeEnabled ? 'true' : 'false',
+    );
+  }, [hiddenModeEnabled]);
+
   return {
     isRefreshingSlicingPie,
     setIsRefreshingSlicingPie,
-    data,
+    data: hiddenModeEnabled && hiddenModeData ? hiddenModeData : data,
     fetchData,
+    hiddenModeEnabled,
+    setHiddenModeEnabled,
   };
 }
 

@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { setup, RedisStore } from 'axios-cache-adapter';
 import redis from 'redis';
 import { basicAuthCheck } from '../../utils/access';
+import { hiddenDataMock } from '../../utils/hiddenDataMock';
 
 axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
 axios.defaults.headers = {
@@ -122,6 +123,13 @@ export async function requestAll<T>(
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
+
+  const hiddenModeEnabled = !!req.query.hidden;
+
+  if (hiddenModeEnabled) {
+    res.json(hiddenDataMock);
+    return;
+  }
 
   const financialMutationsSyncResponse = await requestAll<
     {
