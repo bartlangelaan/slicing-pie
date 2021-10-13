@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Highcharts from 'highcharts';
+import styled from 'styled-components';
 import HighchartsReact from 'highcharts-react-official';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
 
@@ -44,6 +45,10 @@ function calculateStartupDeduction(
 
   return maxDeduction;
 }
+
+const TableHeader = styled.th`
+  top: 78px;
+`;
 
 export function NetProfitTable(props: GetSlicingPieResponse) {
   const [unfitForWorkAll, setUnfitForWorkAll] = useState(false);
@@ -429,36 +434,36 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
+              <TableHeader
+                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
                 scope="col"
               >
                 &nbsp;
-              </th>
-              <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
+              </TableHeader>
+              <TableHeader
+                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Totaal
-              </th>
-              <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
+              </TableHeader>
+              <TableHeader
+                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Bart
-              </th>
-              <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
+              </TableHeader>
+              <TableHeader
+                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Ian
-              </th>
-              <th
-                className="py-3 px-6 text-right top-0 sticky bg-gray-200 z-10"
+              </TableHeader>
+              <TableHeader
+                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
                 scope="col"
               >
                 Niels
-              </th>
+              </TableHeader>
             </tr>
           </thead>
           <tbody className="text-gray-600 text-sm font-light">

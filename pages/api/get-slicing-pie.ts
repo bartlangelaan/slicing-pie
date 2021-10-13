@@ -17,8 +17,10 @@ axios.defaults.headers = {
 // @todo beveiliging api endpoints - DONE
 // @todo "aftrek toepassen" vinkje ook gebruiken in Winst per vennoot bar chart - DONE
 // @todo Algemene layout - DONE
-// @todo filter alles op 2021
+// @todo cache localStorage met refresh - DONE
 // @todo "hidden" mode
+// @todo verbeter performance met in serie geschakelde financial mutations
+// @todo filter alles op 2021
 // @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten?
 // @todo voorbereiden 2022
 
@@ -54,7 +56,7 @@ const ledgerAccountsIds = {
     deposit: '314079948801312243',
     costs: '325319664846505435',
     user: '313176631829071688',
-    skipProjects: ['325298306787837389'],
+    skipProjects: ['325298306787837389', '335438415799519191'],
   },
   niels: {
     withdrawal: '314080117682865253',
