@@ -11,7 +11,7 @@ export function Header() {
 
   return (
     <StyledHeader
-      className="text-white p-6 flex sticky top-0 z-10"
+      className="text-white p-6 flex sticky top-0 z-20"
       isRefreshingData={slicingPie.isRefreshingSlicingPie}
     >
       <h1 className="text-xl flex items-center content-center flex-1">
