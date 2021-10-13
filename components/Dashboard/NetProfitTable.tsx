@@ -579,7 +579,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right border-r italic">
                 <div>
-                  <span>{simulatedExtraHours}</span>
+                  <span>{simulatedExtraHours || 0}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
