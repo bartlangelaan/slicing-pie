@@ -13,7 +13,7 @@ function useSlicingPieContextValue() {
   const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState(true);
   const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
     typeof window !== 'undefined'
-      ? !!window.localStorage.getItem('slicing-pie.hidden-mode')
+      ? window.localStorage.getItem('slicing-pie.hidden-mode') === 'true'
       : false,
   );
 
