@@ -76,6 +76,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const simulatedExtraHours =
     simulatedExtraHoursBart + simulatedExtraHoursIan + simulatedExtraHoursNiels;
+  const totalTimeSpentFiltered =
+    props.totalTimeSpentFiltered + simulatedExtraHours;
 
   const hoursBart =
     props.timeSpent.bart.yearFiltered + (simulatedExtraHoursBart || 0);
@@ -121,11 +123,10 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     (simulatedExtraProfit || 0);
 
   const grossProfitBart =
-    totalProfit * (hoursBart / props.totalTimeSpentFiltered) || 0;
-  const grossProfitIan =
-    totalProfit * (hoursIan / props.totalTimeSpentFiltered) || 0;
+    totalProfit * (hoursBart / totalTimeSpentFiltered) || 0;
+  const grossProfitIan = totalProfit * (hoursIan / totalTimeSpentFiltered) || 0;
   const grossProfitNiels =
-    totalProfit * (hoursNiels / props.totalTimeSpentFiltered) || 0;
+    totalProfit * (hoursNiels / totalTimeSpentFiltered) || 0;
 
   const grossTaxBart = grossProfitBart * config.taxPercentage;
   const grossTaxIan = grossProfitIan * config.taxPercentage;
