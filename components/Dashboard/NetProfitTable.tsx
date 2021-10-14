@@ -286,11 +286,17 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const totalWithDrawals = withDrawalsBart + withDrawalsIan + withDrawalsNiels;
 
-  const netLeftBart = netProfitBart - withDrawalsBart;
-  const netLeftIan = netProfitIan - withDrawalsIan;
-  const netLeftNiels = netProfitNiels - withDrawalsNiels;
+  const netLeftBart = grossProfitBart - costsBart - withDrawalsBart;
+  const netLeftIan = grossProfitIan - costsIan - withDrawalsIan;
+  const netLeftNiels = grossProfitNiels - costsNiels - withDrawalsNiels;
 
   const netLeft = netLeftBart + netLeftIan + netLeftNiels;
+
+  const totalTaxBart = netTaxBart + contributionHIABart;
+  const totalTaxIan = netTaxIan + contributionHIAIan;
+  const totalTaxNiels = netTaxNiels + contributionHIANiels;
+
+  const totalTax = totalTaxBart + totalTaxIan + totalTaxNiels;
 
   const profitOptions: Highcharts.Options = useMemo(() => {
     return {
@@ -1305,7 +1311,34 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Onttrekkingen</span>
+                  <span>Waarvan belasting (IB & Zvw)</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{currencyFormatter.format(totalTax)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(totalTaxBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(totalTaxIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(totalTaxNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Reeds onttrokken</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">

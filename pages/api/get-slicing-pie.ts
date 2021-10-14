@@ -21,7 +21,7 @@ axios.defaults.headers = {
 // @todo cache localStorage met refresh - DONE
 // @todo "hidden" mode - DONE
 // @todo meer velden om te simuleren (uren, omzet/winst) - DONE
-// @todo Onttrekkingen van belasting ook zelf betalen. Hoe onderscheid
+// @todo Onttrekkingen van belasting ook zelf betalen. Hoe onderscheid - DONE
 // @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten?
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo filter alles op 2021
