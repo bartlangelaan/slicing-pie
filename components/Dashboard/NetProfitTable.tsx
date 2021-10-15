@@ -46,7 +46,7 @@ function calculateStartupDeduction(
   return maxDeduction;
 }
 
-const TableHeader = styled.th`
+const TableHead = styled.thead`
   top: 78px;
 `;
 
@@ -457,40 +457,25 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     <>
       <div className="bg-white shadow-lg rounded mt-12">
         <table className="w-full table-auto">
-          <thead>
+          <TableHead className="sticky">
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <TableHeader
-                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
-                scope="col"
-              >
+              <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 &nbsp;
-              </TableHeader>
-              <TableHeader
-                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
-                scope="col"
-              >
+              </th>
+              <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 Totaal
-              </TableHeader>
-              <TableHeader
-                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
-                scope="col"
-              >
+              </th>
+              <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 Bart
-              </TableHeader>
-              <TableHeader
-                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
-                scope="col"
-              >
+              </th>
+              <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 Ian
-              </TableHeader>
-              <TableHeader
-                className="py-3 px-6 text-right sticky bg-gray-200 z-10"
-                scope="col"
-              >
+              </th>
+              <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 Niels
-              </TableHeader>
+              </th>
             </tr>
-          </thead>
+          </TableHead>
           <tbody className="text-gray-600 text-sm font-light">
             <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r italic">
@@ -1282,7 +1267,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span className="font-medium">Over na onttrekkingen</span>
+                  <span className="font-medium">
+                    Beschikbaar om te onttrekken
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">

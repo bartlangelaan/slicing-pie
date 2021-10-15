@@ -4,6 +4,7 @@ import { setup, RedisStore } from 'axios-cache-adapter';
 import redis from 'redis';
 import { basicAuthCheck } from '../../utils/access';
 import { hiddenDataMock } from '../../utils/hiddenDataMock';
+import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
 
 axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
 axios.defaults.headers = {
@@ -22,7 +23,7 @@ axios.defaults.headers = {
 // @todo "hidden" mode - DONE
 // @todo meer velden om te simuleren (uren, omzet/winst) - DONE
 // @todo Onttrekkingen van belasting ook zelf betalen. Hoe onderscheid - DONE
-// @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten?
+// @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten? - DONE v1
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
@@ -69,8 +70,6 @@ const ledgerAccountsIds = {
     skipProjects: [''],
   },
 };
-
-export type Person = keyof typeof ledgerAccountsIds;
 
 function getInitialObject() {
   return {
@@ -192,7 +191,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       paused_duration: number;
       billable: boolean;
       user: { id: string };
-      project?: { id: string };
+      project?: { id: string; name: string };
     }[]
   >('/time_entries.json?filter=period:202011..202112');
 
@@ -366,6 +365,15 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   let totalTimeSpent = 0;
   let totalTimeSpentFiltered = 0;
 
+  const timeSpentPerProject = {} as {
+    [key: string]: {
+      id: string;
+      name: string;
+      skipped: boolean;
+      timeSpent: { [key in Person]: { billable: number; nonBillable: number } };
+    };
+  };
+
   const timeSpent = timeEntriesResponse.reduce(
     (total, item) => {
       const person = findPerson(item.user.id);
@@ -387,6 +395,45 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       totalTimeSpent += timeEntrySpent;
       if (!shouldSkip) {
         totalTimeSpentFiltered += timeEntrySpent;
+      }
+
+      if (item.project) {
+        if (!timeSpentPerProject[item.project.id]) {
+          timeSpentPerProject[item.project.id] = {
+            id: item.project.id,
+            name: item.project.name,
+            skipped: !!shouldSkip,
+            timeSpent: {
+              bart: {
+                billable: 0,
+                nonBillable: 0,
+              },
+              ian: {
+                billable: 0,
+                nonBillable: 0,
+              },
+              niels: {
+                billable: 0,
+                nonBillable: 0,
+              },
+            },
+          };
+        }
+
+        timeSpentPerProject[item.project.id] = {
+          ...timeSpentPerProject[item.project.id],
+          timeSpent: {
+            ...timeSpentPerProject[item.project.id]?.timeSpent,
+            [person]: {
+              billable:
+                (timeSpentPerProject[item.project.id]?.timeSpent[person]
+                  ?.billable || 0) + (item.billable ? timeEntrySpent : 0),
+              nonBillable:
+                (timeSpentPerProject[item.project.id]?.timeSpent[person]
+                  ?.nonBillable || 0) + (item.billable ? 0 : timeEntrySpent),
+            },
+          },
+        };
       }
 
       return {
@@ -469,5 +516,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     totalTimeSpent,
     totalTimeSpentFiltered,
     revenuePerAccount,
+    timeSpentPerProject: Object.values(timeSpentPerProject),
   });
 };

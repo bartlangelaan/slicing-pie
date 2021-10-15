@@ -1,3 +1,5 @@
+import { GetSlicingPieResponse } from '../components/Dashboard/GetSlicingPieResponse';
+
 export const hiddenDataMock = {
   totalProfit: {
     plus: 2000,
@@ -92,4 +94,25 @@ export const hiddenDataMock = {
       company: 'Dummy account',
     },
   ],
-};
+  timeSpentPerProject: [
+    {
+      id: '123456789',
+      name: 'Dummy project',
+      skipped: false,
+      timeSpent: {
+        bart: {
+          billable: 0,
+          nonBillable: 0,
+        },
+        ian: {
+          billable: 0,
+          nonBillable: 0,
+        },
+        niels: {
+          billable: 0,
+          nonBillable: 0,
+        },
+      },
+    },
+  ],
+} as GetSlicingPieResponse;

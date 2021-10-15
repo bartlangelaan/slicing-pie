@@ -1,4 +1,4 @@
-import { Person } from '../../pages/api/get-slicing-pie';
+export type Person = 'bart' | 'ian' | 'niels';
 
 export type GetSlicingPieResponse = {
   timeSpent: {
@@ -22,5 +22,11 @@ export type GetSlicingPieResponse = {
     revenue: number;
     goodwillValuePerson: Person | null;
     goodwillValue: number;
+  }[];
+  timeSpentPerProject: {
+    id: string;
+    name: string;
+    skipped: boolean;
+    timeSpent: { [key in Person]: { billable: number; nonBillable: number } };
   }[];
 };

@@ -2,6 +2,7 @@ import { Loader } from '../Loader';
 import { useSlicingPie } from '../SlicingPieContext';
 import { ClientRevenueTable } from './ClientRevenueTable';
 import { NetProfitTable } from './NetProfitTable';
+import { ProjectInfoTable } from './ProjectInfoTable';
 import { SlicingPieChart } from './SlicingPieChart';
 
 export function Dashboard() {
@@ -14,6 +15,7 @@ export function Dashboard() {
       <SlicingPieChart {...data} />
       <NetProfitTable {...data} />
       <ClientRevenueTable {...data} />
+      <ProjectInfoTable {...data} />
     </>
   );
 }
