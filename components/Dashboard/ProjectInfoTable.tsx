@@ -174,19 +174,55 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
                 {Math.round(totalBillableHoursSpentBart * 10) / 10} uur
               </td>
               <td className="py-3 px-6 text-right border-r font-medium">
-                {Math.round(totalBillableHoursSpentIan * 10) / 10} uur
-              </td>
-              <td className="py-3 px-6 text-right border-r font-medium">
-                {Math.round(totalBillableHoursSpentNiels * 10) / 10} uur
-              </td>
-              <td className="py-3 px-6 text-right border-r font-medium">
                 {Math.round(totalNonBillableHoursSpentBart * 10) / 10} uur
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalBillableHoursSpentIan * 10) / 10} uur
               </td>
               <td className="py-3 px-6 text-right border-r font-medium">
                 {Math.round(totalNonBillableHoursSpentIan * 10) / 10} uur
               </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalBillableHoursSpentNiels * 10) / 10} uur
+              </td>
               <td className="py-3 px-6 text-right font-medium">
                 {Math.round(totalNonBillableHoursSpentNiels * 10) / 10} uur
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 mb-10">
+              <td className="py-3 px-6 text-right border-r font-medium" />
+              <td className="py-3 px-6 text-right border-r font-medium" />
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentBart +
+                    totalNonBillableHoursSpentBart) *
+                    10,
+                ) / 10}{' '}
+                uur
+              </td>
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentIan + totalNonBillableHoursSpentIan) *
+                    10,
+                ) / 10}{' '}
+                uur
+              </td>
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentNiels +
+                    totalNonBillableHoursSpentNiels) *
+                    10,
+                ) / 10}{' '}
+                uur
               </td>
             </tr>
           </tbody>
