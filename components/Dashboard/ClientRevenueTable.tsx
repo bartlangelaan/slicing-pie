@@ -1,4 +1,9 @@
+import styled from 'styled-components';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
+
+const TableHead = styled.thead`
+  top: 78px;
+`;
 
 const currencyFormatter = Intl.NumberFormat('nl', {
   style: 'currency',
@@ -10,14 +15,14 @@ export function ClientRevenueTable(props: GetSlicingPieResponse) {
     <div className="my-12">
       <div className="bg-white shadow-lg rounded">
         <table className="w-full table-auto">
-          <thead>
+          <TableHead className="sticky">
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th className="py-3 px-6 text-right">&nbsp;</th>
               <th className="py-3 px-6 text-right">Omzet</th>
               <th className="py-3 px-6 text-right">Goodwill persoon</th>
               <th className="py-3 px-6 text-right">Goodwill waarde</th>
             </tr>
-          </thead>
+          </TableHead>
           <tbody className="text-gray-600 text-sm font-light">
             {props.revenuePerAccount.map((account) => (
               <tr
