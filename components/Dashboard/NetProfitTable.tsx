@@ -457,7 +457,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     <>
       <div className="bg-white shadow-lg rounded mt-12">
         <table className="w-full table-auto">
-          <TableHead className="sticky">
+          <TableHead className="sticky z-10">
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th className="py-3 px-6 text-right bg-gray-200 z-10" scope="col">
                 &nbsp;
