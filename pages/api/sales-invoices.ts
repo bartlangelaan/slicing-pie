@@ -6,7 +6,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
 
   const response = await axios.get(
-    'https://moneybird.com/api/v2/313185156605150255/sales_invoices.json?filter=state:pending_payment|paid|open',
+    'https://moneybird.com/api/v2/313185156605150255/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid',
     {
       headers: {
         authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
