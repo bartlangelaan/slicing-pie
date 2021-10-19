@@ -120,6 +120,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.min +
     props.totalProfit.openPlus -
     props.totalProfit.openMin +
+    props.totalProfit.personalMin -
+    props.totalProfit.personalPlus +
     (simulatedExtraProfit || 0);
 
   const grossProfitBart =
@@ -275,14 +277,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const netProfit = netProfitBart + netProfitIan + netProfitNiels;
 
   const withDrawalsBart =
-    props.personalFinancialMutations.bart.plus -
-    props.personalFinancialMutations.bart.min;
+    props.personalFinancialMutations.bart.min -
+    props.personalFinancialMutations.bart.plus;
   const withDrawalsIan =
-    props.personalFinancialMutations.ian.plus -
-    props.personalFinancialMutations.ian.min;
+    props.personalFinancialMutations.ian.min -
+    props.personalFinancialMutations.ian.plus;
   const withDrawalsNiels =
-    props.personalFinancialMutations.niels.plus -
-    props.personalFinancialMutations.niels.min;
+    props.personalFinancialMutations.niels.min -
+    props.personalFinancialMutations.niels.plus;
 
   const totalWithDrawals = withDrawalsBart + withDrawalsIan + withDrawalsNiels;
 
@@ -618,6 +620,16 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Bruto winst</span>
+                  <div className="text-xs italic">
+                    <a
+                      href="https://moneybird.com/313185156605150255/sales_invoices/filter/period:this_year,state:scheduled%7Copen%7Cpending_payment%7Clate%7Creminded%7Cpaid"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      Alle betaalde en openstaande facturen
+                    </a>
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">

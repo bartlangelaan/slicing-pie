@@ -51,21 +51,21 @@ const ledgerAccountsIds = {
   bart: {
     withdrawal: '314080108962908154',
     deposit: '314080108885313527',
-    costs: '325419662362806156',
+    costs: ['325419662362806156'],
     user: '314636212260308719',
     skipProjects: [''],
   },
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
-    costs: '325319664846505435',
+    costs: ['325319664846505435'],
     user: '313176631829071688',
     skipProjects: ['325298306787837389', '335438415799519191'],
   },
   niels: {
     withdrawal: '314080117682865253',
     deposit: '314080117647213666',
-    costs: '325419671342811059',
+    costs: ['325419671342811059'],
     user: '314352839788856769',
     skipProjects: [''],
   },
@@ -86,8 +86,8 @@ function findPerson(id: string) {
     return (
       id === personIds.withdrawal ||
       id === personIds.deposit ||
-      id === personIds.costs ||
-      id === personIds.user
+      id === personIds.user ||
+      personIds.costs.includes(id)
     );
   }) as Person | undefined;
 }
@@ -179,6 +179,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const receiptsRequest = requestAll<
     {
+      total_price_excl_tax: string;
       details: { ledger_account_id: string; price: string }[];
       payments: { ledger_account_id: string; price: string }[];
     }[]
@@ -197,7 +198,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const salesInvoicesRequest = requestAll<
     {
-      state: 'pending_payment' | 'paid' | 'open';
+      state:
+        | 'pending_payment'
+        | 'paid'
+        | 'open'
+        | 'late'
+        | 'scheduled'
+        | 'reminded';
       total_price_excl_tax: string;
       contact: {
         id: string;
@@ -233,21 +240,27 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     ),
   });
 
-  const totalProfitPlusMin = financialMutationsResponses.reduce(
-    (total, item) => {
-      const price = parseFloat(item.amount);
+  const totalProfitPlus = salesInvoicesResponse.reduce((total, item) => {
+    if (item.state !== 'paid') return total;
 
-      return {
-        ...total,
-        plus: price > 0 ? total.plus + price : total.plus,
-        min: price < 0 ? total.min - price : total.min,
-      };
-    },
-    { plus: 0, min: 0 },
-  );
+    const price = parseFloat(item.total_price_excl_tax);
+    console.log(total, price);
+
+    return total + price;
+  }, 0);
+  console.log(totalProfitPlus, totalProfitPlus);
+
+  const totalProfitMin = [
+    ...purchaseInvoicesResponse,
+    ...receiptsResponse,
+  ].reduce((total, item) => {
+    const price = parseFloat(item.total_price_excl_tax);
+
+    return total + price;
+  }, 0);
 
   const totalProfitOpenPlus = salesInvoicesResponse.reduce((total, item) => {
-    if (item.state !== 'open') return total;
+    if (item.state === 'paid') return total;
 
     const price = parseFloat(item.total_price_excl_tax);
 
@@ -270,9 +283,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }, 0);
 
   const totalProfit = {
-    ...totalProfitPlusMin,
+    plus: totalProfitPlus,
+    min: totalProfitMin,
     openPlus: totalProfitOpenPlus,
     openMin: totalProfitOpenMin,
+    personalPlus: 0,
+    personalMin: 0,
   };
 
   const personalFinancialMutations = financialMutationsResponses.reduce(
@@ -284,14 +300,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
         const price = parseFloat(booking.price);
 
-        if (price > 0) totalProfit.plus += price;
-        else totalProfit.min += price;
+        if (price > 0) totalProfit.personalPlus += price;
+        else totalProfit.personalMin -= price;
 
         return {
           ...subTotal,
           [person]: {
             plus: subTotal[person].plus + (price > 0 ? price : 0),
-            min: subTotal[person].min + (price < 0 ? price : 0),
+            min: subTotal[person].min - (price < 0 ? price : 0),
           },
         };
       }, total);
@@ -312,7 +328,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           ...subTotal,
           [person]: {
             plus: subTotal[person].plus + (price > 0 ? price : 0),
-            min: subTotal[person].min + (price < 0 ? price : 0),
+            min: subTotal[person].min - (price < 0 ? price : 0),
           },
         };
       }, total);
@@ -332,7 +348,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         ...subTotal,
         [person]: {
           plus: subTotal[person].plus + (price > 0 ? price : 0),
-          min: subTotal[person].min + (price < 0 ? price : 0),
+          min: subTotal[person].min - (price < 0 ? price : 0),
         },
       };
     }, total);

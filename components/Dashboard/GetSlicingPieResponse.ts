@@ -15,7 +15,14 @@ export type GetSlicingPieResponse = {
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalTimeSpentFiltered: number;
-  totalProfit: { plus: number; min: number; openPlus: number; openMin: number };
+  totalProfit: {
+    plus: number;
+    min: number;
+    openPlus: number;
+    openMin: number;
+    personalPlus: number;
+    personalMin: number;
+  };
   revenuePerAccount: {
     id: string;
     company: string;
