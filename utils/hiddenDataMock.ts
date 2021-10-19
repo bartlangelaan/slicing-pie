@@ -6,6 +6,8 @@ export const hiddenDataMock = {
     min: 1000,
     openPlus: 0,
     openMin: 0,
+    personalPlus: 0,
+    personalMin: 200,
   },
   personalCosts: {
     bart: {
