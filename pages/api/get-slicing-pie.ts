@@ -205,7 +205,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         custom_fields: { id: string; name: string; value: string }[];
       };
     }[]
-  >('/sales_invoices.json?filter=state:pending_payment|paid|open');
+  >(
+    '/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid',
+  );
 
   const [
     purchaseInvoicesResponse,
