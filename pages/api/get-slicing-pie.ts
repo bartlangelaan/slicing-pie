@@ -27,6 +27,15 @@ axios.defaults.headers = {
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
+// @todo fixen null-waarde input velden
+// @todo MBP niet als kosten?
+// @todo afschrijving categorie toevoegen als personal cost
+// @todo maximum aan zvw premie
+// @todo belastingschijven
+// @todo zelf vinkje aan/uit zetten uren criterium maar ook berekenen (keuze niet/verlaagd/helemaal?)
+// @todo zelfstandigenaftrek mag elk jaar
+// @todo arbeidsongeschiktheid is 800 uur voor startersaftrek, maar nog steeds 1225 uur voor zelfstandigenaftrek.
+// @todo kia toevoegen
 
 const client = redis.createClient({
   url: process.env.REDIS,
@@ -47,6 +56,8 @@ export const api = setup({
   },
 });
 
+const categoriesToSkipAsCosts = ['336003494874973243'];
+
 const ledgerAccountsIds = {
   bart: {
     withdrawal: '314080108962908154',
@@ -58,7 +69,7 @@ const ledgerAccountsIds = {
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
-    costs: ['325319664846505435'],
+    costs: ['325319664846505435', '336003494959907902'],
     user: '313176631829071688',
     skipProjects: ['325298306787837389', '335438415799519191'],
   },
@@ -244,16 +255,24 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     if (item.state !== 'paid') return total;
 
     const price = parseFloat(item.total_price_excl_tax);
-    console.log(total, price);
 
     return total + price;
   }, 0);
-  console.log(totalProfitPlus, totalProfitPlus);
 
   const totalProfitMin = [
     ...purchaseInvoicesResponse,
     ...receiptsResponse,
   ].reduce((total, item) => {
+    // If an item's ledger account id should be skipped.
+    // This is the case for categories on the accounting balance (e.g. investments).
+    if (
+      item.details.some((detail) =>
+        categoriesToSkipAsCosts.includes(detail.ledger_account_id),
+      )
+    ) {
+      return total;
+    }
+
     const price = parseFloat(item.total_price_excl_tax);
 
     return total + price;
