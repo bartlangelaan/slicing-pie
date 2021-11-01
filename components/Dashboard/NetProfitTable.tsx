@@ -483,7 +483,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right border-r italic">
                 <div>
                   <span>
-                    Simuleer extra bruto winst (omzet - algemene kosten)
+                    Simuleer extra bruto winst (= omzet - algemene kosten)
                   </span>
                 </div>
               </td>
