@@ -482,7 +482,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r italic">
                 <div>
-                  <span>Simuleer extra winst</span>
+                  <span>
+                    Simuleer extra bruto winst (omzet - algemene kosten)
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r italic">

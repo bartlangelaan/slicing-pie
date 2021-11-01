@@ -36,6 +36,7 @@ axios.defaults.headers = {
 // @todo zelfstandigenaftrek mag elk jaar
 // @todo arbeidsongeschiktheid is 800 uur voor startersaftrek, maar nog steeds 1225 uur voor zelfstandigenaftrek.
 // @todo kia toevoegen
+// @todo uren tabel extra regel voor totaal met slicing pie: ja
 
 const client = redis.createClient({
   url: process.env.REDIS,
