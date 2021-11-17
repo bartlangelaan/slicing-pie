@@ -175,7 +175,10 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const grossProfitAfterExemptionBart =
     grossProfitBart - costsBart - profitExemptionBart;
   const grossProfitAfterExemptionIan =
-    grossProfitIan - costsIan - profitExemptionIan;
+    grossProfitIan -
+    costsIan -
+    profitExemptionIan +
+    config.fiscalCarAdditionIan;
   const grossProfitAfterExemptionNiels =
     grossProfitNiels - costsNiels - profitExemptionNiels;
 
@@ -261,7 +264,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitAfterDeductionNiels;
 
   const netTaxBart = grossProfitAfterDeductionBart * config.taxPercentage;
-  const netTaxIan = grossProfitAfterDeductionIan * config.taxPercentage;
+  const netTaxIan =
+    (grossProfitAfterDeductionIan + config.fiscalCarAdditionIan) *
+    config.taxPercentage;
   const netTaxNiels = grossProfitAfterDeductionNiels * config.taxPercentage;
 
   const netTax = netTaxBart + netTaxIan + netTaxNiels;
@@ -279,11 +284,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const netProfitBart =
     grossProfitBart - costsBart - netTaxBart - contributionHIABart;
   const netProfitIan =
-    grossProfitIan -
-    costsIan -
-    netTaxIan -
-    contributionHIAIan -
-    config.fiscalCarAdditionIan;
+    grossProfitIan - costsIan - netTaxIan - contributionHIAIan;
   const netProfitNiels =
     grossProfitNiels - costsNiels - netTaxNiels - contributionHIANiels;
 
