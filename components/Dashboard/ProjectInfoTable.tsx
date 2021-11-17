@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
+import { ProjectInfoRow } from './ProjectInfoRow';
 
 const TableHead = styled.thead`
   top: 78px;
@@ -9,29 +10,72 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
   // Temp because of caching.
   if (!props.timeSpentPerProject) return null;
 
+  const totalBillableHoursSpentSlicingPieBart =
+    props.timeSpentPerProject.reduce(
+      (total, project) =>
+        total + (project.skipped ? 0 : project.timeSpent.bart.billable),
+      0,
+    );
+  const totalBillableHoursSpentSlicingPieIan = props.timeSpentPerProject.reduce(
+    (total, project) =>
+      total + (project.skipped ? 0 : project.timeSpent.ian.billable),
+    0,
+  );
+  const totalBillableHoursSpentSlicingPieNiels =
+    props.timeSpentPerProject.reduce(
+      (total, project) =>
+        total + (project.skipped ? 0 : project.timeSpent.niels.billable),
+      0,
+    );
+
+  const totalNonBillableHoursSpentSlicingPieBart =
+    props.timeSpentPerProject.reduce(
+      (total, project) =>
+        total + (project.skipped ? 0 : project.timeSpent.bart.nonBillable),
+      0,
+    );
+  const totalNonBillableHoursSpentSlicingPieIan =
+    props.timeSpentPerProject.reduce(
+      (total, project) =>
+        total + (project.skipped ? 0 : project.timeSpent.ian.nonBillable),
+      0,
+    );
+  const totalNonBillableHoursSpentSlicingPieNiels =
+    props.timeSpentPerProject.reduce(
+      (total, project) =>
+        total + (project.skipped ? 0 : project.timeSpent.niels.nonBillable),
+      0,
+    );
+
   const totalBillableHoursSpentBart = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.bart.billable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.bart.billable : 0),
     0,
   );
   const totalBillableHoursSpentIan = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.ian.billable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.ian.billable : 0),
     0,
   );
   const totalBillableHoursSpentNiels = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.niels.billable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.niels.billable : 0),
     0,
   );
 
   const totalNonBillableHoursSpentBart = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.bart.nonBillable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.bart.nonBillable : 0),
     0,
   );
   const totalNonBillableHoursSpentIan = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.ian.nonBillable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.ian.nonBillable : 0),
     0,
   );
   const totalNonBillableHoursSpentNiels = props.timeSpentPerProject.reduce(
-    (total, project) => total + project.timeSpent.niels.nonBillable,
+    (total, project) =>
+      total + (project.skipped ? project.timeSpent.niels.nonBillable : 0),
     0,
   );
 
@@ -41,7 +85,6 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
         <table className="w-full table-auto">
           <TableHead className="sticky">
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th className="py-3 px-6 bg-gray-200 text-right">&nbsp;</th>
               <th className="py-3 px-6 bg-gray-200 text-right">&nbsp;</th>
               <th colSpan={2} className="py-3 px-6 bg-gray-200 text-center">
                 Bart
@@ -55,7 +98,6 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
             </tr>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th className="py-3 px-6 bg-gray-200 text-right">&nbsp;</th>
-              <th className="py-3 px-6 bg-gray-200 text-right">Slicing pie</th>
               <th className="py-3 px-6 bg-gray-200 text-center">
                 <span className="material-icons material-icons-outlined">
                   attach_money
@@ -89,73 +131,100 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
             </tr>
           </TableHead>
           <tbody className="text-gray-600 text-sm font-light">
-            {props.timeSpentPerProject.map((project) => (
-              <tr
-                key={project.id}
-                className="border-b border-gray-200 hover:bg-gray-100"
-              >
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>{project.name}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>{project.skipped ? 'Nee' : 'Ja'}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.bart.billable * 10) / 10}{' '}
-                      uur
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.bart.nonBillable * 10) / 10}{' '}
-                      uur
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.ian.billable * 10) / 10} uur
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.ian.nonBillable * 10) / 10}{' '}
-                      uur
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.niels.billable * 10) / 10}{' '}
-                      uur
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-6 text-right border-r">
-                  <div>
-                    <span>
-                      {Math.round(project.timeSpent.niels.nonBillable * 10) /
-                        10}{' '}
-                      uur
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {props.timeSpentPerProject
+              .filter((project) => !project.skipped)
+              .map((project) => (
+                <ProjectInfoRow project={project} />
+              ))}
             <tr className="h-10 border-b">
               <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 mb-10">
+              <td className="py-3 px-6 text-right border-r font-medium">
+                <div>
+                  <span>Totaal voor slicing pie</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalBillableHoursSpentSlicingPieBart * 10) / 10}{' '}
+                uur
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalNonBillableHoursSpentSlicingPieBart * 10) / 10}{' '}
+                uur
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalBillableHoursSpentSlicingPieIan * 10) / 10} uur
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalNonBillableHoursSpentSlicingPieIan * 10) / 10}{' '}
+                uur
+              </td>
+              <td className="py-3 px-6 text-right border-r font-medium">
+                {Math.round(totalBillableHoursSpentSlicingPieNiels * 10) / 10}{' '}
+                uur
+              </td>
+              <td className="py-3 px-6 text-right font-medium">
+                {Math.round(totalNonBillableHoursSpentSlicingPieNiels * 10) /
+                  10}{' '}
+                uur
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 mb-10">
+              <td className="py-3 px-6 text-right border-r font-medium" />
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentSlicingPieBart +
+                    totalNonBillableHoursSpentSlicingPieBart) *
+                    10,
+                ) / 10}{' '}
+                uur
+              </td>
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentSlicingPieIan +
+                    totalNonBillableHoursSpentSlicingPieIan) *
+                    10,
+                ) / 10}{' '}
+                uur
+              </td>
+              <td
+                colSpan={2}
+                className="py-3 px-6 text-center border-r font-medium"
+              >
+                {Math.round(
+                  (totalBillableHoursSpentSlicingPieNiels +
+                    totalNonBillableHoursSpentSlicingPieNiels) *
+                    10,
+                ) / 10}{' '}
+                uur
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+              <td className="border-r" />
+            </tr>
+            {props.timeSpentPerProject
+              .filter((project) => project.skipped)
+              .map((project) => (
+                <ProjectInfoRow project={project} />
+              ))}
+            <tr className="h-10 border-b">
               <td className="border-r" />
               <td className="border-r" />
               <td className="border-r" />
@@ -169,7 +238,6 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
                   <span>Totaal</span>
                 </div>
               </td>
-              <td className="py-3 px-6 text-right border-r font-medium" />
               <td className="py-3 px-6 text-right border-r font-medium">
                 {Math.round(totalBillableHoursSpentBart * 10) / 10} uur
               </td>

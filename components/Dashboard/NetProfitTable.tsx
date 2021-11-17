@@ -9,10 +9,10 @@ const config2021 = {
   taxPercentage: 0.371,
   HIAPercentage: 0.0575,
   maxHIA: 3353,
-  hourCriteriumFromJuly: 1225 - 24 * 26,
-  hourCriteriumFromJulyUnfitForWork: 800 - 16 * 26,
-  minHoursPerWeekFromJuly: (1225 - 24 * 26) / 26,
-  minHoursPerWeekUnfitForWorkFromJuly: (800 - 16 * 26) / 26,
+  hourCriterium: 1225 - 24 * 26,
+  hourCriteriumUnfitForWork: 800 - 16 * 26,
+  minHoursPerWeek: (1225 - 24 * 26) / 26,
+  minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
   // Year costs / number of days * number of days from 01/09 - 31/12
   fiscalCarAdditionIan: (4649 / 365) * 120,
   maxSelfEmployedDeduction: 6670,
@@ -27,6 +27,10 @@ const config2021 = {
 
 const config2022 = {
   ...config2021,
+  hourCriterium: 1225,
+  hourCriteriumUnfitForWork: 800,
+  minHoursPerWeek: 1225 / 52,
+  minHoursPerWeekUnfitForWork: 800 / 52,
 };
 
 const currencyFormatter = Intl.NumberFormat('nl', {
@@ -76,6 +80,7 @@ const TableHead = styled.thead`
 
 export function NetProfitTable(props: GetSlicingPieResponse) {
   const { periodFilter } = useSlicingPie();
+  const filterHoursFromJuly = periodFilter === 2021;
   const config = periodFilter === 2022 ? config2022 : config2021;
 
   const [unfitForWorkAll, setUnfitForWorkAll] = useState(false);
@@ -103,31 +108,38 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const [simulatedExtraHoursIan, setSimulatedExtraHoursIan] = useState(0);
   const [simulatedExtraHoursNiels, setSimulatedExtraHoursNiels] = useState(0);
 
-  const weeksSinceJuly =
-    (Date.now() - new Date('2021-07-01').getTime()) / (7 * 24 * 60 * 60 * 1000);
+  const numberOfPastWeeks =
+    (Date.now() -
+      new Date(filterHoursFromJuly ? '2021-07-01' : '2021-01-01').getTime()) /
+    (7 * 24 * 60 * 60 * 1000);
 
   const simulatedExtraHours =
-    simulatedExtraHoursBart + simulatedExtraHoursIan + simulatedExtraHoursNiels;
+    (simulatedExtraHoursBart || 0) +
+    (simulatedExtraHoursIan || 0) +
+    (simulatedExtraHoursNiels || 0);
   const totalTimeSpentFiltered =
     props.totalTimeSpentFiltered + simulatedExtraHours;
 
-  const hoursBart =
+  const filteredHoursBart =
     props.timeSpent.bart.yearFiltered + (simulatedExtraHoursBart || 0);
-  const hoursIan =
+  const filteredHoursIan =
     props.timeSpent.ian.yearFiltered + (simulatedExtraHoursIan || 0);
-  const hoursNiels =
+  const filteredHoursNiels =
     props.timeSpent.niels.yearFiltered + (simulatedExtraHoursNiels || 0);
 
-  const hoursFromJulyBart =
-    props.timeSpent.bart.fromJuly + (simulatedExtraHoursBart || 0);
-  const hoursFromJulyIan =
-    props.timeSpent.ian.fromJuly + (simulatedExtraHoursIan || 0);
-  const hoursFromJulyNiels =
-    props.timeSpent.niels.fromJuly + (simulatedExtraHoursNiels || 0);
+  const allHhoursBart =
+    props.timeSpent.bart[filterHoursFromJuly ? 'fromJuly' : 'year'] +
+    (simulatedExtraHoursBart || 0);
+  const allHhoursIan =
+    props.timeSpent.ian[filterHoursFromJuly ? 'fromJuly' : 'year'] +
+    (simulatedExtraHoursIan || 0);
+  const allHhoursNiels =
+    props.timeSpent.niels[filterHoursFromJuly ? 'fromJuly' : 'year'] +
+    (simulatedExtraHoursNiels || 0);
 
-  const hoursPerWeekSinceJulyBart = hoursFromJulyBart / weeksSinceJuly;
-  const hoursPerWeekSinceJulyIan = hoursFromJulyIan / weeksSinceJuly;
-  const hoursPerWeekSinceJulyNiels = hoursFromJulyNiels / weeksSinceJuly;
+  const hoursPerWeekBart = allHhoursBart / numberOfPastWeeks;
+  const hoursPerWeekIan = allHhoursIan / numberOfPastWeeks;
+  const hoursPerWeekNiels = allHhoursNiels / numberOfPastWeeks;
 
   const totalProfit =
     props.totalProfit.plus -
@@ -138,9 +150,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.personalPlus +
     (simulatedExtraProfit || 0);
 
-  const percentageBart = hoursBart / totalTimeSpentFiltered;
-  const percentageIan = hoursIan / totalTimeSpentFiltered;
-  const percentageNiels = hoursNiels / totalTimeSpentFiltered;
+  const percentageBart = filteredHoursBart / totalTimeSpentFiltered;
+  const percentageIan = filteredHoursIan / totalTimeSpentFiltered;
+  const percentageNiels = filteredHoursNiels / totalTimeSpentFiltered;
 
   const grossProfitBart = totalProfit * percentageBart || 0;
   const grossProfitIan = totalProfit * percentageIan || 0;
@@ -752,7 +764,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span className="font-medium">Voldoet aan urencriterium</span>
                   <div className="text-xs italic">
                     Automatisch berekend o.b.v. geschreven uren tussen 1{' '}
-                    {periodFilter === 2022 ? 'januari' : 'juli'} en 31 december
+                    {filterHoursFromJuly ? 'juli' : 'januari'} en 31 december
                   </div>
                 </div>
               </td>
@@ -788,19 +800,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <div className="mt-2">
                     min.{' '}
                     {(unfitForWorkBart
-                      ? config.minHoursPerWeekUnfitForWorkFromJuly
-                      : config.minHoursPerWeekFromJuly
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeek
                     ).toFixed(1)}{' '}
                     uur / week
                   </div>
                   <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyBart.toFixed(1)} uur / week
+                    nu {hoursPerWeekBart.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {hoursFromJulyBart.toFixed(0)} /{' '}
+                    {allHhoursBart.toFixed(0)} /{' '}
                     {(unfitForWorkBart
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
+                      ? config.hourCriteriumUnfitForWork
+                      : config.hourCriterium
                     ).toFixed(0)}{' '}
                     uren geboekt
                   </div>
@@ -822,19 +834,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <div className="mt-2">
                     min.{' '}
                     {(unfitForWorkIan
-                      ? config.minHoursPerWeekUnfitForWorkFromJuly
-                      : config.minHoursPerWeekFromJuly
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeek
                     ).toFixed(1)}{' '}
                     uur / week
                   </div>
                   <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyIan.toFixed(1)} uur / week
+                    nu {hoursPerWeekIan.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {hoursFromJulyIan.toFixed(0)} /{' '}
+                    {allHhoursIan.toFixed(0)} /{' '}
                     {(unfitForWorkIan
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
+                      ? config.hourCriteriumUnfitForWork
+                      : config.hourCriterium
                     ).toFixed(0)}{' '}
                     uren geboekt
                   </div>
@@ -856,19 +868,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <div className="mt-2">
                     min.{' '}
                     {(unfitForWorkNiels
-                      ? config.minHoursPerWeekUnfitForWorkFromJuly
-                      : config.minHoursPerWeekFromJuly
+                      ? config.minHoursPerWeekUnfitForWork
+                      : config.minHoursPerWeek
                     ).toFixed(1)}{' '}
                     uur / week
                   </div>
                   <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyNiels.toFixed(1)} uur / week
+                    nu {hoursPerWeekNiels.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
-                    {hoursFromJulyNiels.toFixed(0)} /{' '}
+                    {allHhoursNiels.toFixed(0)} /{' '}
                     {(unfitForWorkNiels
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
+                      ? config.hourCriteriumUnfitForWork
+                      : config.hourCriterium
                     ).toFixed(0)}{' '}
                     uren geboekt
                   </div>
@@ -886,7 +898,12 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span className="font-medium">Bruto winst</span>
                   <div className="text-xs italic">
                     <a
-                      href="https://moneybird.com/313185156605150255/sales_invoices/filter/period:this_year,state:scheduled%7Copen%7Cpending_payment%7Clate%7Creminded%7Cpaid"
+                      href={`https://moneybird.com/313185156605150255/sales_invoices/filter/period:${
+                        periodFilter === 2021 &&
+                        new Date().getFullYear() === 2022
+                          ? 'prev_year'
+                          : 'this_year'
+                      },state:scheduled%7Copen%7Cpending_payment%7Clate%7Creminded%7Cpaid`}
                       target="_blank"
                       rel="noreferrer"
                       className="underline"

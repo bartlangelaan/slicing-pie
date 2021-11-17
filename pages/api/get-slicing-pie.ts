@@ -29,13 +29,14 @@ axios.defaults.headers = {
 // @todo bijtelling verwerken - DONE
 // @todo filter alles op 2021 - DONE
 // @todo maximum aan zvw premie - DONE
-// @todo fixen null-waarde input velden
-// @todo belastingschijven
 // @todo zelf vinkje aan/uit zetten uren criterium maar ook berekenen (keuze niet/verlaagd/helemaal?) - DONE
 // @todo zelfstandigenaftrek mag elk jaar - DONE
 // @todo kia toevoegen - DONE
-// @todo voorbereiden 2022
-// @todo uren tabel extra regel voor totaal met slicing pie: ja
+// @todo voorbereiden 2022 - DONE
+// @todo skip projecten voor slicing pie obv naam ipv hardcoded - DONE
+// @todo uren tabel extra regel voor totaal met slicing pie: ja - DONE
+// @todo fixen null-waarde input velden - DONE
+// @todo belastingschijven
 // @todo Sandbox administratie
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo timeline? Alles teruggeven aan frontend en "rewind" toevoegen
@@ -67,21 +68,18 @@ const ledgerAccountsIds = {
     deposit: '314080108885313527',
     costs: ['325419662362806156'],
     user: '314636212260308719',
-    skipProjects: [''],
   },
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
     costs: ['325319664846505435', '336003494959907902'],
     user: '313176631829071688',
-    skipProjects: ['325298306787837389', '335438415799519191'],
   },
   niels: {
     withdrawal: '314080117682865253',
     deposit: '314080117647213666',
     costs: ['325419671342811059'],
     user: '314352839788856769',
-    skipProjects: [''],
   },
 };
 
@@ -431,9 +429,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!person) return total;
 
-      const shouldSkip =
-        item.project &&
-        ledgerAccountsIds[person].skipProjects.includes(item.project.id);
+      const shouldSkip = item.project?.name.endsWith('[S]');
 
       const startDate = new Date(item.started_at);
       const endDate = new Date(item.ended_at);
