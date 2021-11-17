@@ -11,6 +11,9 @@ const config = {
   hourCriteriumFromJulyUnfitForWork: 800 - 16 * 26,
   minHoursPerWeekFromJuly: (1225 - 24 * 26) / 26,
   minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
+  // Year costs / number of days * number of days from 01/09 - 31/12
+  fiscalCarAdditionIan: (4649 / 365) * 120,
+  // fiscalCarAdditionIan: 0,
 };
 
 const currencyFormatter = Intl.NumberFormat('nl', {
@@ -124,14 +127,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.personalPlus +
     (simulatedExtraProfit || 0);
 
-  const grossProfitBart =
-    totalProfit * (hoursBart / totalTimeSpentFiltered) || 0;
-  const grossProfitIan = totalProfit * (hoursIan / totalTimeSpentFiltered) || 0;
-  const grossProfitNiels =
-    totalProfit * (hoursNiels / totalTimeSpentFiltered) || 0;
+  const percentageBart = hoursBart / totalTimeSpentFiltered;
+  const percentageIan = hoursIan / totalTimeSpentFiltered;
+  const percentageNiels = hoursNiels / totalTimeSpentFiltered;
+
+  const grossProfitBart = totalProfit * percentageBart || 0;
+  const grossProfitIan = totalProfit * percentageIan || 0;
+  const grossProfitNiels = totalProfit * percentageNiels || 0;
+
+  const grossProfit = grossProfitBart + grossProfitIan + grossProfitNiels;
 
   const grossTaxBart = grossProfitBart * config.taxPercentage;
-  const grossTaxIan = grossProfitIan * config.taxPercentage;
+  const grossTaxIan =
+    (grossProfitIan + config.fiscalCarAdditionIan) * config.taxPercentage;
   const grossTaxNiels = grossProfitNiels * config.taxPercentage;
 
   const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
@@ -157,7 +165,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const totalCosts = costsBart + costsIan + costsNiels;
 
   const profitExemptionBart = (grossProfitBart - costsBart) * 0.14;
-  const profitExemptionIan = (grossProfitIan - costsIan) * 0.14;
+  const profitExemptionIan =
+    (grossProfitIan + config.fiscalCarAdditionIan - costsIan) * 0.14;
   const profitExemptionNiels = (grossProfitNiels - costsNiels) * 0.14;
 
   const profitExemption =
@@ -270,7 +279,11 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const netProfitBart =
     grossProfitBart - costsBart - netTaxBart - contributionHIABart;
   const netProfitIan =
-    grossProfitIan - costsIan - netTaxIan - contributionHIAIan;
+    grossProfitIan -
+    costsIan -
+    netTaxIan -
+    contributionHIAIan -
+    config.fiscalCarAdditionIan;
   const netProfitNiels =
     grossProfitNiels - costsNiels - netTaxNiels - contributionHIANiels;
 
@@ -618,6 +631,11 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 </div>
               </td>
             </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
               <td className="py-3 px-6 text-right border-r">
                 <div>
@@ -637,7 +655,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
-                    {currencyFormatter.format(totalProfit)}
+                    {currencyFormatter.format(grossProfit)}
                   </span>
                 </div>
               </td>
@@ -660,7 +678,39 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>
+                  <span>Slicing pie</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>100%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageBart * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageIan * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageNiels * 1000) / 10}%</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
                     Bruto inkomstenbelasting ({config.taxPercentage * 100}%)
                   </span>
                 </div>
@@ -683,6 +733,37 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(grossTaxNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Waarvan fiscale bijtelling</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(config.fiscalCarAdditionIan)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(0)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(config.fiscalCarAdditionIan)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(0)}</span>
                 </div>
               </td>
             </tr>

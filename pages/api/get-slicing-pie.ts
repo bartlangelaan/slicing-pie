@@ -24,12 +24,13 @@ axios.defaults.headers = {
 // @todo meer velden om te simuleren (uren, omzet/winst) - DONE
 // @todo Onttrekkingen van belasting ook zelf betalen. Hoe onderscheid - DONE
 // @todo Uren inzicht. Intern vs billable - Hoe? Wat willen we weten? - DONE v1
-// @todo verbeter performance met in serie geschakelde financial mutations
+// @todo MBP niet als kosten? - DONE
+// @todo afschrijving categorie toevoegen als personal cost - DONE
+// @todo bijtelling verwerken - DONE
+// @todo Sandbox administratie
 // @todo filter alles op 2021
 // @todo voorbereiden 2022
 // @todo fixen null-waarde input velden
-// @todo MBP niet als kosten?
-// @todo afschrijving categorie toevoegen als personal cost
 // @todo maximum aan zvw premie
 // @todo belastingschijven
 // @todo zelf vinkje aan/uit zetten uren criterium maar ook berekenen (keuze niet/verlaagd/helemaal?)
@@ -37,6 +38,8 @@ axios.defaults.headers = {
 // @todo arbeidsongeschiktheid is 800 uur voor startersaftrek, maar nog steeds 1225 uur voor zelfstandigenaftrek.
 // @todo kia toevoegen
 // @todo uren tabel extra regel voor totaal met slicing pie: ja
+// @todo verbeter performance met in serie geschakelde financial mutations
+// @todo timeline? Alles teruggeven aan frontend en "rewind" toevoegen
 
 const client = redis.createClient({
   url: process.env.REDIS,
