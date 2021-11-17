@@ -6,6 +6,7 @@ module.exports = {
   },
   extends: [
     'plugin:@typescript-eslint/recommended',
+    'airbnb',
     'airbnb-typescript',
     'prettier',
     'plugin:prettier/recommended',
@@ -30,11 +31,9 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'prefer-destructuring': 'off',
     'react/jsx-props-no-spreading': 'off',
-    'import/no-extraneous-dependencies': [
-      'error',
-      {
-        devDependencies: ['**/*.stories.tsx'],
-      },
+    'react/function-component-definition': [
+      2,
+      { namedComponents: 'function-declaration' },
     ],
   },
   env: {

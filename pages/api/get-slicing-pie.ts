@@ -8,7 +8,10 @@ import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
 
 axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
 axios.defaults.headers = {
-  authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
+  ...axios.defaults.headers,
+  common: {
+    authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
+  },
 };
 
 // @todo openstaande facturen meenemen als losse regel (+ als winst?) - DONE
