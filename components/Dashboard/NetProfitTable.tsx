@@ -3,17 +3,30 @@ import Highcharts from 'highcharts';
 import styled from 'styled-components';
 import HighchartsReact from 'highcharts-react-official';
 import { GetSlicingPieResponse } from './GetSlicingPieResponse';
+import { useSlicingPie } from '../SlicingPieContext';
 
-const config = {
+const config2021 = {
   taxPercentage: 0.371,
   HIAPercentage: 0.0575,
+  maxHIA: 3353,
   hourCriteriumFromJuly: 1225 - 24 * 26,
   hourCriteriumFromJulyUnfitForWork: 800 - 16 * 26,
   minHoursPerWeekFromJuly: (1225 - 24 * 26) / 26,
-  minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
+  minHoursPerWeekUnfitForWorkFromJuly: (800 - 16 * 26) / 26,
   // Year costs / number of days * number of days from 01/09 - 31/12
   fiscalCarAdditionIan: (4649 / 365) * 120,
-  // fiscalCarAdditionIan: 0,
+  maxSelfEmployedDeduction: 6670,
+  maxStartupDeduction: 2123,
+  maxStartupDeductionUnfitForWork: 12000,
+  SSIDeductionValueIan: 2652.07,
+  minSSIDeduction: 2401,
+  maxSSIDeduction: 59170,
+  SSIDectionPercentage: 0.28,
+  profitExemptionPercentage: 0.14,
+};
+
+const config2022 = {
+  ...config2021,
 };
 
 const currencyFormatter = Intl.NumberFormat('nl', {
@@ -24,29 +37,37 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 function calculateSelfEmployedDeduction(
   grossProfit: number,
   hourCriterium: boolean,
-  applyDeduction: boolean,
   unfitForWork: boolean,
+  maxSelfEmployedDeduction: number,
 ) {
-  if (!hourCriterium || !applyDeduction || unfitForWork) return 0;
+  if (!hourCriterium || unfitForWork) return 0;
 
-  if (grossProfit < 6670) return grossProfit;
+  if (grossProfit < maxSelfEmployedDeduction) return grossProfit;
 
-  return 6670;
+  return maxSelfEmployedDeduction;
 }
 
 function calculateStartupDeduction(
   grossProfit: number,
   hourCriterium: boolean,
-  applyDeduction: boolean,
-  unfitForWork: boolean,
+  applyStartupDeduction: boolean,
+  maxDeduction: number,
 ) {
-  if (!hourCriterium || !applyDeduction) return 0;
-
-  const maxDeduction = unfitForWork ? 12000 : 2123;
+  if (!hourCriterium || !applyStartupDeduction) return 0;
 
   if (grossProfit < maxDeduction) return grossProfit;
 
   return maxDeduction;
+}
+
+function calculateHIA(
+  grossProfitAfterEntrepreneurDeduction: number,
+  HIAPercentage: number,
+  maxHIA: number,
+) {
+  const HIA = grossProfitAfterEntrepreneurDeduction * HIAPercentage;
+
+  return HIA > maxHIA ? maxHIA : HIA;
 }
 
 const TableHead = styled.thead`
@@ -54,15 +75,23 @@ const TableHead = styled.thead`
 `;
 
 export function NetProfitTable(props: GetSlicingPieResponse) {
+  const { periodFilter } = useSlicingPie();
+  const config = periodFilter === 2022 ? config2022 : config2021;
+
   const [unfitForWorkAll, setUnfitForWorkAll] = useState(false);
   const [unfitForWorkBart, setUnfitForWorkBart] = useState(false);
-  const [unfitForWorkIan, setUnfitForWorkIan] = useState(true);
+  const [unfitForWorkIan, setUnfitForWorkIan] = useState(false);
   const [unfitForWorkNiels, setUnfitForWorkNiels] = useState(false);
 
-  const [applyDeductionAll, setApplyDeductionAll] = useState(false);
-  const [applyDeductionBart, setApplyDeductionBart] = useState(false);
-  const [applyDeductionIan, setApplyDeductionIan] = useState(false);
-  const [applyDeductionNiels, setApplyDeductionNiels] = useState(false);
+  const [meetsHourCriteriumAll, setMeetsHourCriteriumAll] = useState(false);
+  const [meetsHourCriteriumBart, setMeetsHourCriteriumBart] = useState(false);
+  const [meetsHourCriteriumIan, setMeetsHourCriteriumIan] = useState(true);
+  const [meetsHourCriteriumNiels, setMeetsHourCriteriumNiels] = useState(false);
+
+  const [applyStartupDeductionAll, setApplyDeductionAll] = useState(false);
+  const [applyStartupDeductionBart, setApplyDeductionBart] = useState(false);
+  const [applyStartupDeductionIan, setApplyDeductionIan] = useState(false);
+  const [applyStartupDeductionNiels, setApplyDeductionNiels] = useState(false);
 
   const [simulatedExtraProfit, setSimulatedExtraProfit] = useState(0);
 
@@ -99,24 +128,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const hoursPerWeekSinceJulyBart = hoursFromJulyBart / weeksSinceJuly;
   const hoursPerWeekSinceJulyIan = hoursFromJulyIan / weeksSinceJuly;
   const hoursPerWeekSinceJulyNiels = hoursFromJulyNiels / weeksSinceJuly;
-
-  const hourCriteriumBart =
-    (unfitForWorkBart &&
-      hoursPerWeekSinceJulyBart > config.minHoursPerWeekUnfitForWork) ||
-    (!unfitForWorkBart &&
-      hoursPerWeekSinceJulyBart > config.minHoursPerWeekFromJuly);
-  const hourCriteriumIan =
-    (unfitForWorkIan &&
-      hoursPerWeekSinceJulyIan > config.minHoursPerWeekUnfitForWork) ||
-    (!unfitForWorkIan &&
-      hoursPerWeekSinceJulyIan > config.minHoursPerWeekFromJuly);
-  const hourCriteriumNiels =
-    (unfitForWorkNiels &&
-      hoursPerWeekSinceJulyNiels > config.minHoursPerWeekUnfitForWork) ||
-    (!unfitForWorkNiels &&
-      hoursPerWeekSinceJulyNiels > config.minHoursPerWeekFromJuly);
-  const hourCriteriumAll =
-    hourCriteriumBart && hourCriteriumIan && hourCriteriumNiels;
 
   const totalProfit =
     props.totalProfit.plus -
@@ -164,46 +175,23 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const totalCosts = costsBart + costsIan + costsNiels;
 
-  const profitExemptionBart = (grossProfitBart - costsBart) * 0.14;
-  const profitExemptionIan =
-    (grossProfitIan + config.fiscalCarAdditionIan - costsIan) * 0.14;
-  const profitExemptionNiels = (grossProfitNiels - costsNiels) * 0.14;
-
-  const profitExemption =
-    profitExemptionBart + profitExemptionIan + profitExemptionNiels;
-
-  const grossProfitAfterExemptionBart =
-    grossProfitBart - costsBart - profitExemptionBart;
-  const grossProfitAfterExemptionIan =
-    grossProfitIan -
-    costsIan -
-    profitExemptionIan +
-    config.fiscalCarAdditionIan;
-  const grossProfitAfterExemptionNiels =
-    grossProfitNiels - costsNiels - profitExemptionNiels;
-
-  const grossProfitAfterExemption =
-    grossProfitAfterExemptionBart +
-    grossProfitAfterExemptionIan +
-    grossProfitAfterExemptionNiels;
-
   const selfEmployedDeductionBart = calculateSelfEmployedDeduction(
-    grossProfitAfterExemptionBart,
-    hourCriteriumBart,
-    applyDeductionBart,
+    grossProfitBart - costsBart,
+    meetsHourCriteriumBart,
     unfitForWorkBart,
+    config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionIan = calculateSelfEmployedDeduction(
-    grossProfitAfterExemptionIan,
-    hourCriteriumIan,
-    applyDeductionIan,
+    grossProfitIan - costsIan + config.fiscalCarAdditionIan,
+    meetsHourCriteriumIan,
     unfitForWorkIan,
+    config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionNiels = calculateSelfEmployedDeduction(
-    grossProfitAfterExemptionNiels,
-    hourCriteriumNiels,
-    applyDeductionNiels,
+    grossProfitNiels - costsNiels,
+    meetsHourCriteriumNiels,
     unfitForWorkNiels,
+    config.maxSelfEmployedDeduction,
   );
 
   const selfEmployedDeduction =
@@ -212,71 +200,121 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     selfEmployedDeductionNiels;
 
   const startupDeductionBart = calculateStartupDeduction(
-    grossProfitAfterExemptionBart - selfEmployedDeductionBart,
-    hourCriteriumBart,
-    applyDeductionBart,
-    unfitForWorkBart,
+    grossProfitBart - costsBart,
+    meetsHourCriteriumBart,
+    applyStartupDeductionBart,
+    unfitForWorkBart
+      ? config.maxStartupDeductionUnfitForWork
+      : config.maxStartupDeduction,
   );
   const startupDeductionIan = calculateStartupDeduction(
-    grossProfitAfterExemptionIan - selfEmployedDeductionIan,
-    hourCriteriumIan,
-    applyDeductionIan,
-    unfitForWorkIan,
+    grossProfitIan - costsIan + config.fiscalCarAdditionIan,
+    meetsHourCriteriumIan,
+    applyStartupDeductionIan,
+    unfitForWorkIan
+      ? config.maxStartupDeductionUnfitForWork
+      : config.maxStartupDeduction,
   );
   const startupDeductionNiels = calculateStartupDeduction(
-    grossProfitAfterExemptionNiels - selfEmployedDeductionNiels,
-    hourCriteriumNiels,
-    applyDeductionNiels,
-    unfitForWorkNiels,
+    grossProfitNiels - costsNiels,
+    meetsHourCriteriumNiels,
+    applyStartupDeductionNiels,
+    unfitForWorkNiels
+      ? config.maxStartupDeductionUnfitForWork
+      : config.maxStartupDeduction,
   );
 
   const startupDeduction =
     startupDeductionBart + startupDeductionIan + startupDeductionNiels;
 
+  const SSIDeductionBart = 0;
+  const SSIDeductionIan =
+    config.SSIDeductionValueIan * config.SSIDectionPercentage;
+  const SSIDeductionNiels = 0;
+
+  const SSIDeduction = SSIDeductionBart + SSIDeductionIan + SSIDeductionNiels;
+
   const entrepreneursDeductionBart =
-    selfEmployedDeductionBart + startupDeductionBart;
+    selfEmployedDeductionBart + startupDeductionBart + SSIDeductionBart;
   const entrepreneursDeductionIan =
-    selfEmployedDeductionIan + startupDeductionIan;
+    selfEmployedDeductionIan + startupDeductionIan + SSIDeductionIan;
   const entrepreneursDeductionNiels =
-    selfEmployedDeductionNiels + startupDeductionNiels;
+    selfEmployedDeductionNiels + startupDeductionNiels + SSIDeductionNiels;
 
-  // const entrepreneursDeduction =
-  //   entrepreneursDeductionBart +
-  //   entrepreneursDeductionIan +
-  //   entrepreneursDeductionNiels;
-
-  const grossProfitAfterDeductionBart =
-    grossProfitBart -
-    costsBart -
-    profitExemptionBart -
-    entrepreneursDeductionBart;
-  const grossProfitAfterDeductionIan =
-    grossProfitIan - costsIan - profitExemptionIan - entrepreneursDeductionIan;
-  const grossProfitAfterDeductionNiels =
-    grossProfitNiels -
-    costsNiels -
-    profitExemptionNiels -
+  const entrepreneursDeduction =
+    entrepreneursDeductionBart +
+    entrepreneursDeductionIan +
     entrepreneursDeductionNiels;
 
-  const grossProfitAfterDeduction =
-    grossProfitAfterDeductionBart +
-    grossProfitAfterDeductionIan +
-    grossProfitAfterDeductionNiels;
+  const grossProfitAfterEntrepreneurDeductionBart =
+    grossProfitBart - costsBart - entrepreneursDeductionBart;
+  const grossProfitAfterEntrepreneurDeductionIan =
+    grossProfitIan - costsIan - entrepreneursDeductionIan;
+  const grossProfitAfterEntrepreneurDeductionNiels =
+    grossProfitNiels - costsNiels - entrepreneursDeductionNiels;
 
-  const netTaxBart = grossProfitAfterDeductionBart * config.taxPercentage;
+  const grossProfitAfterEntrepreneurDeduction =
+    grossProfitAfterEntrepreneurDeductionBart +
+    grossProfitAfterEntrepreneurDeductionIan +
+    grossProfitAfterEntrepreneurDeductionNiels;
+
+  const profitExemptionBart =
+    (grossProfitBart - costsBart - entrepreneursDeductionBart) *
+    config.profitExemptionPercentage;
+  const profitExemptionIan =
+    (grossProfitIan -
+      costsIan -
+      entrepreneursDeductionIan +
+      config.fiscalCarAdditionIan) *
+    config.profitExemptionPercentage;
+  const profitExemptionNiels =
+    (grossProfitNiels - costsNiels - entrepreneursDeductionNiels) *
+    config.profitExemptionPercentage;
+
+  const profitExemption =
+    profitExemptionBart + profitExemptionIan + profitExemptionNiels;
+
+  const grossProfitAfterExemptionBart =
+    grossProfitBart -
+    costsBart -
+    entrepreneursDeductionBart -
+    profitExemptionBart;
+  const grossProfitAfterExemptionIan =
+    grossProfitIan - costsIan - entrepreneursDeductionIan - profitExemptionIan;
+  const grossProfitAfterExemptionNiels =
+    grossProfitNiels -
+    costsNiels -
+    entrepreneursDeductionNiels -
+    profitExemptionNiels;
+
+  const grossProfitAfterExemption =
+    grossProfitAfterExemptionBart +
+    grossProfitAfterExemptionIan +
+    grossProfitAfterExemptionNiels;
+
+  const netTaxBart = grossProfitAfterExemptionBart * config.taxPercentage;
   const netTaxIan =
-    (grossProfitAfterDeductionIan + config.fiscalCarAdditionIan) *
+    (grossProfitAfterExemptionIan + config.fiscalCarAdditionIan) *
     config.taxPercentage;
-  const netTaxNiels = grossProfitAfterDeductionNiels * config.taxPercentage;
+  const netTaxNiels = grossProfitAfterExemptionNiels * config.taxPercentage;
 
   const netTax = netTaxBart + netTaxIan + netTaxNiels;
 
-  const contributionHIABart =
-    grossProfitAfterDeductionBart * config.HIAPercentage;
-  const contributionHIAIan =
-    grossProfitAfterDeductionIan * config.HIAPercentage;
-  const contributionHIANiels =
-    grossProfitAfterDeductionNiels * config.HIAPercentage;
+  const contributionHIABart = calculateHIA(
+    grossProfitAfterExemptionBart,
+    config.HIAPercentage,
+    config.maxHIA,
+  );
+  const contributionHIAIan = calculateHIA(
+    grossProfitAfterExemptionIan,
+    config.HIAPercentage,
+    config.maxHIA,
+  );
+  const contributionHIANiels = calculateHIA(
+    grossProfitAfterExemptionNiels,
+    config.HIAPercentage,
+    config.maxHIA,
+  );
 
   const contributionHIA =
     contributionHIABart + contributionHIAIan + contributionHIANiels;
@@ -354,24 +392,27 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
           const taxes = {
             Bart: {
               grossTax: grossTaxBart,
-              applyDeduction: applyDeductionBart,
+              applyStartupDeduction: applyStartupDeductionBart,
               deduction: entrepreneursDeductionBart,
               netTax: netTaxBart,
               contributionHIA: contributionHIABart,
+              meetsHourCriterium: meetsHourCriteriumBart,
             },
             Ian: {
               grossTax: grossTaxIan,
-              applyDeduction: applyDeductionIan,
+              applyStartupDeduction: applyStartupDeductionIan,
               deduction: entrepreneursDeductionIan,
               netTax: netTaxIan,
               contributionHIA: contributionHIAIan,
+              meetsHourCriterium: meetsHourCriteriumIan,
             },
             Niels: {
               grossTax: grossTaxNiels,
-              applyDeduction: applyDeductionNiels,
+              applyStartupDeduction: applyStartupDeductionNiels,
               deduction: entrepreneursDeductionNiels,
               netTax: netTaxNiels,
               contributionHIA: contributionHIANiels,
+              meetsHourCriterium: meetsHourCriteriumNiels,
             },
           };
 
@@ -386,7 +427,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
             Kosten: ${currencyFormatter.format(val.points[0].point.y || 0)}<br/>
             Aftrekposten: ${
-              taxes[person].applyDeduction
+              taxes[person].meetsHourCriterium
                 ? currencyFormatter.format(taxes[person].deduction || 0)
                 : 'N.v.t.'
             }<br/>
@@ -446,9 +487,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
       },
     };
   }, [
-    applyDeductionBart,
-    applyDeductionIan,
-    applyDeductionNiels,
+    applyStartupDeductionBart,
+    applyStartupDeductionIan,
+    applyStartupDeductionNiels,
     contributionHIABart,
     contributionHIAIan,
     contributionHIANiels,
@@ -461,6 +502,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossTaxBart,
     grossTaxIan,
     grossTaxNiels,
+    meetsHourCriteriumBart,
+    meetsHourCriteriumIan,
+    meetsHourCriteriumNiels,
     netProfitBart,
     netProfitIan,
     netProfitNiels,
@@ -629,6 +673,205 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                       setSimulatedExtraHoursNiels(parseInt(e.target.value, 10));
                     }}
                   />
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">(Deels) arbeidsongeschikt</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center border-r">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded"
+                  checked={unfitForWorkAll}
+                  onChange={() => {
+                    setUnfitForWorkAll((currentUnfitForWorkAll) => {
+                      setUnfitForWorkBart(!currentUnfitForWorkAll);
+                      setUnfitForWorkIan(!currentUnfitForWorkAll);
+                      setUnfitForWorkNiels(!currentUnfitForWorkAll);
+
+                      return !currentUnfitForWorkAll;
+                    });
+                  }}
+                />
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={unfitForWorkBart}
+                    onChange={() => {
+                      setUnfitForWorkBart(
+                        (currentUnfitForWorkBart) => !currentUnfitForWorkBart,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={unfitForWorkIan}
+                    onChange={() => {
+                      setUnfitForWorkIan(
+                        (currentUnfitForWorkIan) => !currentUnfitForWorkIan,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={unfitForWorkNiels}
+                    onChange={() => {
+                      setUnfitForWorkNiels(
+                        (currentUnfitForWorkNiels) => !currentUnfitForWorkNiels,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Voldoet aan urencriterium</span>
+                  <div className="text-xs italic">
+                    Automatisch berekend o.b.v. geschreven uren tussen 1{' '}
+                    {periodFilter === 2022 ? 'januari' : 'juli'} en 31 december
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center border-r">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded"
+                  checked={meetsHourCriteriumAll}
+                  onChange={() => {
+                    setMeetsHourCriteriumAll((currentMeetsHourCriteriumAll) => {
+                      setMeetsHourCriteriumBart(!currentMeetsHourCriteriumAll);
+                      setMeetsHourCriteriumIan(!currentMeetsHourCriteriumAll);
+                      setMeetsHourCriteriumNiels(!currentMeetsHourCriteriumAll);
+
+                      return !currentMeetsHourCriteriumAll;
+                    });
+                  }}
+                />
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={meetsHourCriteriumBart}
+                    onChange={() => {
+                      setMeetsHourCriteriumBart(
+                        (currentMeetsHourCriteriumBart) =>
+                          !currentMeetsHourCriteriumBart,
+                      );
+                    }}
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkBart
+                      ? config.minHoursPerWeekUnfitForWorkFromJuly
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyBart.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {hoursFromJulyBart.toFixed(0)} /{' '}
+                    {(unfitForWorkBart
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={meetsHourCriteriumIan}
+                    onChange={() => {
+                      setMeetsHourCriteriumIan(
+                        (currentMeetsHourCriteriumIan) =>
+                          !currentMeetsHourCriteriumIan,
+                      );
+                    }}
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkIan
+                      ? config.minHoursPerWeekUnfitForWorkFromJuly
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyIan.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {hoursFromJulyIan.toFixed(0)} /{' '}
+                    {(unfitForWorkIan
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={meetsHourCriteriumNiels}
+                    onChange={() => {
+                      setMeetsHourCriteriumNiels(
+                        (currentMeetsHourCriteriumNiels) =>
+                          !currentMeetsHourCriteriumNiels,
+                      );
+                    }}
+                  />
+                  <div className="mt-2">
+                    min.{' '}
+                    {(unfitForWorkNiels
+                      ? config.minHoursPerWeekUnfitForWorkFromJuly
+                      : config.minHoursPerWeekFromJuly
+                    ).toFixed(1)}{' '}
+                    uur / week
+                  </div>
+                  <div className="mt-2">
+                    nu {hoursPerWeekSinceJulyNiels.toFixed(1)} uur / week
+                  </div>
+                  <div className="mt-2">
+                    {hoursFromJulyNiels.toFixed(0)} /{' '}
+                    {(unfitForWorkNiels
+                      ? config.hourCriteriumFromJulyUnfitForWork
+                      : config.hourCriteriumFromJuly
+                    ).toFixed(0)}{' '}
+                    uren geboekt
+                  </div>
                 </div>
               </td>
             </tr>
@@ -849,8 +1092,281 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
+                  <span className="font-medium">Pas startersaftrek toe</span>
+                  <div className="text-xs italic">
+                    Wel of niet de startersaftrek toepassen? Mag 3 keer in de
+                    eerste 5 jaar.
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center border-r">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded"
+                  checked={applyStartupDeductionAll}
+                  onChange={() => {
+                    setApplyDeductionAll((currentApplyDeductionAll) => {
+                      setApplyDeductionBart(!currentApplyDeductionAll);
+                      setApplyDeductionIan(!currentApplyDeductionAll);
+                      setApplyDeductionNiels(!currentApplyDeductionAll);
+
+                      return !currentApplyDeductionAll;
+                    });
+                  }}
+                />
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionBart}
+                    onChange={() => {
+                      setApplyDeductionBart(
+                        (currentApplyDeductionBart) =>
+                          !currentApplyDeductionBart,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionIan}
+                    onChange={() => {
+                      setApplyDeductionIan(
+                        (currentApplyDeductionIan) => !currentApplyDeductionIan,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionNiels}
+                    onChange={() => {
+                      setApplyDeductionNiels(
+                        (currentApplyDeductionNiels) =>
+                          !currentApplyDeductionNiels,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Zelfstandigenaftrek</span>
+                  <div className="text-xs italic">
+                    Max. 100%,{' '}
+                    {currencyFormatter.format(config.maxSelfEmployedDeduction)},
+                    of {currencyFormatter.format(0)} bij arbeidsongeschiktheid
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    {currencyFormatter.format(selfEmployedDeduction)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(selfEmployedDeductionBart)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(selfEmployedDeductionIan)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(selfEmployedDeductionNiels)}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Startersaftrek</span>
+                  <div className="text-xs italic">
+                    Max. 100%,{' '}
+                    {currencyFormatter.format(config.maxStartupDeduction)}, of{' '}
+                    {currencyFormatter.format(
+                      config.maxStartupDeductionUnfitForWork,
+                    )}{' '}
+                    bij arbeidsongeschiktheid
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    {currencyFormatter.format(startupDeduction)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(startupDeductionBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(startupDeductionIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(startupDeductionNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    Kleinschaligheidsinvesteringsaftrek (KIA)
+                  </span>
+                  <div className="text-xs italic">
+                    Totale investering tussen{' '}
+                    {currencyFormatter.format(config.minSSIDeduction)} en{' '}
+                    {currencyFormatter.format(config.maxSSIDeduction)}
+                  </div>
+                  <div className="text-xs italic">
+                    {Math.round(config.SSIDectionPercentage * 100)}% van het
+                    investeringsbedrag
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    {currencyFormatter.format(SSIDeduction)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(0)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(SSIDeductionIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(0)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Totaal ondernemersaftrek</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(entrepreneursDeduction)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(entrepreneursDeductionBart)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(entrepreneursDeductionIan)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(entrepreneursDeductionNiels)}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Subtotaal bruto winst</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitAfterEntrepreneurDeduction,
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitAfterEntrepreneurDeductionBart,
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitAfterEntrepreneurDeductionIan,
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitAfterEntrepreneurDeductionNiels,
+                    )}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
                   <span className="font-medium">Mkb-winstvrijstelling</span>
-                  <div className="text-xs italic">Altijd 14%</div>
+                  <div className="text-xs italic">
+                    Altijd {Math.round(config.profitExemptionPercentage * 100)}%
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -907,360 +1423,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 <div>
                   <span>
                     {currencyFormatter.format(grossProfitAfterExemptionNiels)}
-                  </span>
-                </div>
-              </td>
-            </tr>
-            <tr className="h-10 border-b">
-              <td className="border-r" />
-              <td className="border-r" />
-              <td colSpan={3} />
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">(Deels) arbeidsongeschikt</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center border-r">
-                <input
-                  type="checkbox"
-                  className="form-checkbox rounded"
-                  checked={unfitForWorkAll}
-                  onChange={() => {
-                    setUnfitForWorkAll((currentUnfitForWorkAll) => {
-                      setUnfitForWorkBart(!currentUnfitForWorkAll);
-                      setUnfitForWorkIan(!currentUnfitForWorkAll);
-                      setUnfitForWorkNiels(!currentUnfitForWorkAll);
-
-                      return !currentUnfitForWorkAll;
-                    });
-                  }}
-                />
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkBart}
-                    onChange={() => {
-                      setUnfitForWorkBart(
-                        (currentUnfitForWorkBart) => !currentUnfitForWorkBart,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkIan}
-                    onChange={() => {
-                      setUnfitForWorkIan(
-                        (currentUnfitForWorkIan) => !currentUnfitForWorkIan,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkNiels}
-                    onChange={() => {
-                      setUnfitForWorkNiels(
-                        (currentUnfitForWorkNiels) => !currentUnfitForWorkNiels,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">Voldoet aan urencriterium</span>
-                  <div className="text-xs italic">
-                    Automatisch berekend o.b.v. geschreven uren tussen 1 juli en
-                    31 december
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center border-r">
-                <input
-                  type="checkbox"
-                  className="form-checkbox rounded bg-gray-200"
-                  checked={hourCriteriumAll}
-                  disabled
-                />
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded bg-gray-200"
-                    checked={hourCriteriumBart}
-                    disabled
-                  />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkBart
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeekFromJuly
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyBart.toFixed(1)} uur / week
-                  </div>
-                  <div className="mt-2">
-                    {hoursFromJulyBart.toFixed(0)} /{' '}
-                    {(unfitForWorkBart
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
-                    ).toFixed(0)}{' '}
-                    uren geboekt
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded bg-gray-200"
-                    checked={hourCriteriumIan}
-                    disabled
-                  />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkIan
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeekFromJuly
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyIan.toFixed(1)} uur / week
-                  </div>
-                  <div className="mt-2">
-                    {hoursFromJulyIan.toFixed(0)} /{' '}
-                    {(unfitForWorkIan
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
-                    ).toFixed(0)}{' '}
-                    uren geboekt
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded bg-gray-200"
-                    checked={hourCriteriumNiels}
-                    disabled
-                  />
-                  <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkNiels
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeekFromJuly
-                    ).toFixed(1)}{' '}
-                    uur / week
-                  </div>
-                  <div className="mt-2">
-                    nu {hoursPerWeekSinceJulyNiels.toFixed(1)} uur / week
-                  </div>
-                  <div className="mt-2">
-                    {hoursFromJulyNiels.toFixed(0)} /{' '}
-                    {(unfitForWorkNiels
-                      ? config.hourCriteriumFromJulyUnfitForWork
-                      : config.hourCriteriumFromJuly
-                    ).toFixed(0)}{' '}
-                    uren geboekt
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">Pas ondernemersaftrek toe</span>
-                  <div className="text-xs italic">
-                    Wel of niet de zelfstandigenaftrek & startersaftrek
-                    toepassen?
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center border-r">
-                <input
-                  type="checkbox"
-                  className="form-checkbox rounded"
-                  checked={applyDeductionAll}
-                  onChange={() => {
-                    setApplyDeductionAll((currentApplyDeductionAll) => {
-                      setApplyDeductionBart(!currentApplyDeductionAll);
-                      setApplyDeductionIan(!currentApplyDeductionAll);
-                      setApplyDeductionNiels(!currentApplyDeductionAll);
-
-                      return !currentApplyDeductionAll;
-                    });
-                  }}
-                />
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyDeductionBart}
-                    onChange={() => {
-                      setApplyDeductionBart(
-                        (currentApplyDeductionBart) =>
-                          !currentApplyDeductionBart,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyDeductionIan}
-                    onChange={() => {
-                      setApplyDeductionIan(
-                        (currentApplyDeductionIan) => !currentApplyDeductionIan,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyDeductionNiels}
-                    onChange={() => {
-                      setApplyDeductionNiels(
-                        (currentApplyDeductionNiels) =>
-                          !currentApplyDeductionNiels,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">Zelfstandigenaftrek</span>
-                  <div className="text-xs italic">
-                    Max. 100%, &euro; 6670, of &euro; 0 bij
-                    arbeidsongeschiktheid
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">
-                    {currencyFormatter.format(selfEmployedDeduction)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(selfEmployedDeductionBart)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(selfEmployedDeductionIan)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(selfEmployedDeductionNiels)}
-                  </span>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">Startersaftrek</span>
-                  <div className="text-xs italic">
-                    Max. 100%, &euro; 2123, of &euro; 12.000 bij
-                    arbeidsongeschiktheid
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">
-                    {currencyFormatter.format(startupDeduction)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(startupDeductionBart)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(startupDeductionIan)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(startupDeductionNiels)}</span>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span>Subtotaal bruto winst</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitAfterDeduction)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitAfterDeductionBart)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitAfterDeductionIan)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitAfterDeductionNiels)}
                   </span>
                 </div>
               </td>
@@ -1331,7 +1493,10 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Inkomensafhankelijke bijdrage Zvw en Wlz (5.75%)</span>
+                  <span>
+                    Inkomensafhankelijke bijdrage Zvw en Wlz (5.75%, max.{' '}
+                    {currencyFormatter.format(3353)})
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">

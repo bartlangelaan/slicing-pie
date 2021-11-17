@@ -28,14 +28,13 @@ axios.defaults.headers = {
 // @todo afschrijving categorie toevoegen als personal cost - DONE
 // @todo bijtelling verwerken - DONE
 // @todo filter alles op 2021 - DONE
-// @todo voorbereiden 2022 - DONE
+// @todo maximum aan zvw premie - DONE
 // @todo fixen null-waarde input velden
-// @todo maximum aan zvw premie
 // @todo belastingschijven
-// @todo zelf vinkje aan/uit zetten uren criterium maar ook berekenen (keuze niet/verlaagd/helemaal?)
-// @todo zelfstandigenaftrek mag elk jaar
-// @todo arbeidsongeschiktheid is 800 uur voor startersaftrek, maar nog steeds 1225 uur voor zelfstandigenaftrek.
-// @todo kia toevoegen
+// @todo zelf vinkje aan/uit zetten uren criterium maar ook berekenen (keuze niet/verlaagd/helemaal?) - DONE
+// @todo zelfstandigenaftrek mag elk jaar - DONE
+// @todo kia toevoegen - DONE
+// @todo voorbereiden 2022
 // @todo uren tabel extra regel voor totaal met slicing pie: ja
 // @todo Sandbox administratie
 // @todo verbeter performance met in serie geschakelde financial mutations
