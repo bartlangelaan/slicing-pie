@@ -16,6 +16,7 @@ function useSlicingPieContextValue() {
       ? window.localStorage.getItem('slicing-pie.hidden-mode') === 'true'
       : false,
   );
+  const [periodFilter, setPeriodFilter] = useState<2021 | 2022>(2021);
 
   const dataStringFromCache =
     typeof window !== 'undefined'
@@ -36,16 +37,10 @@ function useSlicingPieContextValue() {
     useState<GetSlicingPieResponse | null>(null);
 
   const fetchData = useCallback(async () => {
-    axios
-      .get<GetSlicingPieResponse>('/api/get-slicing-pie?hidden=true')
-      .then((response) => {
-        setHiddenModeData(response.data);
-      });
-
     setIsRefreshingSlicingPie(true);
 
     const response = await axios.get<GetSlicingPieResponse>(
-      '/api/get-slicing-pie',
+      `/api/get-slicing-pie?periodFilter=${periodFilter}`,
     );
 
     if (response.data) {
@@ -57,11 +52,25 @@ function useSlicingPieContextValue() {
     }
 
     setIsRefreshingSlicingPie(false);
-  }, []);
+  }, [periodFilter]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      axios
+        .get<GetSlicingPieResponse>('/api/get-slicing-pie?hidden=true')
+        .then((response) => {
+          setHiddenModeData(response.data);
+        });
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(
@@ -77,6 +86,8 @@ function useSlicingPieContextValue() {
     fetchData,
     hiddenModeEnabled,
     setHiddenModeEnabled,
+    periodFilter,
+    setPeriodFilter,
   };
 }
 

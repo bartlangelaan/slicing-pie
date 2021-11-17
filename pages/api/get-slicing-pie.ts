@@ -27,9 +27,8 @@ axios.defaults.headers = {
 // @todo MBP niet als kosten? - DONE
 // @todo afschrijving categorie toevoegen als personal cost - DONE
 // @todo bijtelling verwerken - DONE
-// @todo Sandbox administratie
-// @todo filter alles op 2021
-// @todo voorbereiden 2022
+// @todo filter alles op 2021 - DONE
+// @todo voorbereiden 2022 - DONE
 // @todo fixen null-waarde input velden
 // @todo maximum aan zvw premie
 // @todo belastingschijven
@@ -38,6 +37,7 @@ axios.defaults.headers = {
 // @todo arbeidsongeschiktheid is 800 uur voor startersaftrek, maar nog steeds 1225 uur voor zelfstandigenaftrek.
 // @todo kia toevoegen
 // @todo uren tabel extra regel voor totaal met slicing pie: ja
+// @todo Sandbox administratie
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo timeline? Alles teruggeven aan frontend en "rewind" toevoegen
 
@@ -140,6 +140,11 @@ export async function requestAll<T>(
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
 
+  const periodFilter =
+    req.query.periodFilter === '2021' && new Date().getFullYear() === 2022
+      ? 'prev_year'
+      : 'this_year';
+
   const hiddenModeEnabled = !!req.query.hidden;
 
   if (hiddenModeEnabled) {
@@ -152,7 +157,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       id: string;
       version: number;
     }[]
-  >('/financial_mutations/synchronization.json', { cache: { maxAge: 0 } });
+  >(`/financial_mutations/synchronization.json?filter=period:${periodFilter}`, {
+    cache: { maxAge: 0 },
+  });
 
   const financialMutationsResponses = [];
 
@@ -190,7 +197,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         price_base?: string;
       }[];
     }[]
-  >('/documents/purchase_invoices.json');
+  >(`/documents/purchase_invoices.json?filter=period:${periodFilter}`);
 
   const receiptsRequest = requestAll<
     {
@@ -209,7 +216,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       user: { id: string };
       project?: { id: string; name: string };
     }[]
-  >('/time_entries.json?filter=period:202011..202112');
+  >(
+    `/time_entries.json?filter=period:${
+      new Date().getFullYear() === 2021 ? '20201101..20211231' : periodFilter
+    }`,
+  );
 
   const salesInvoicesRequest = requestAll<
     {
@@ -228,7 +239,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       };
     }[]
   >(
-    '/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid',
+    `/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid&period:${periodFilter}`,
   );
 
   const [
@@ -548,6 +559,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
   res.json({
+    year:
+      req.query.periodFilter === '2021' || new Date().getFullYear() === 2021
+        ? 2021
+        : 2022,
     totalProfit,
     personalCosts,
     personalFinancialMutations,
