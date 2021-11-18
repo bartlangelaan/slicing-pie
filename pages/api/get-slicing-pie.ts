@@ -39,9 +39,10 @@ axios.defaults.headers = {
 // @todo skip projecten voor slicing pie obv naam ipv hardcoded - DONE
 // @todo uren tabel extra regel voor totaal met slicing pie: ja - DONE
 // @todo fixen null-waarde input velden - DONE
+// @todo verbeter performance met in serie geschakelde financial mutations
+// @todo tooltips met "hoe berekend"
 // @todo belastingschijven
 // @todo Sandbox administratie
-// @todo verbeter performance met in serie geschakelde financial mutations
 // @todo timeline? Alles teruggeven aan frontend en "rewind" toevoegen
 
 const client = redis.createClient({

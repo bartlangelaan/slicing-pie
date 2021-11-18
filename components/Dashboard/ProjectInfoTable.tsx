@@ -259,7 +259,6 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
             </tr>
             <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 mb-10">
               <td className="py-3 px-6 text-right border-r font-medium" />
-              <td className="py-3 px-6 text-right border-r font-medium" />
               <td
                 colSpan={2}
                 className="py-3 px-6 text-center border-r font-medium"
