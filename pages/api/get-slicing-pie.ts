@@ -39,11 +39,15 @@ axios.defaults.headers = {
 // @todo skip projecten voor slicing pie obv naam ipv hardcoded - DONE
 // @todo uren tabel extra regel voor totaal met slicing pie: ja - DONE
 // @todo fixen null-waarde input velden - DONE
+// @todo projecten gedeeltelijk mee laten tellen ([20%] en [20])
+// @todo slicing pie project ook gedeeltelijk mee laten tellen
+// @todo afschrijvingen: https://developer.moneybird.com/api/documents_general_journal_documents/
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo tooltips met "hoe berekend"
 // @todo belastingschijven
+// @todo arbeidskorting
 // @todo Sandbox administratie
-// @todo timeline? Alles teruggeven aan frontend en "rewind" toevoegen
+// @todo timeline? Alles teruggeven aan frontend en "rewind" en/of periode filters toevoegen
 
 const client = redis.createClient({
   url: process.env.REDIS,
@@ -76,7 +80,7 @@ const ledgerAccountsIds = {
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
-    costs: ['325319664846505435', '336003494959907902'],
+    costs: ['325319664846505435'],
     user: '313176631829071688',
   },
   niels: {
@@ -133,9 +137,14 @@ export async function requestAll<T>(
 ) {
   const result = [] as AxiosResponse<T>[];
 
-  const res = await request<T>(url, 1, result, requestConfig);
+  try {
+    const res = await request<T>(url, 1, result, requestConfig);
 
-  return res.map((req) => req.data).flat();
+    return res.map((req) => req.data).flat();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
@@ -330,6 +339,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     (total, item) => {
       return item.ledger_account_bookings.reduce((subTotal, booking) => {
         const person = findPerson(booking.ledger_account_id);
+        // console.log(booking.price, booking.ledger_account_id);
 
         if (!person) return subTotal;
 
