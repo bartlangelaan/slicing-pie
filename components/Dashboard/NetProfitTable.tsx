@@ -1574,6 +1574,39 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
+                  <span>Waarvan winst</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{currencyFormatter.format(netLeft - totalTax)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(netLeftBart - totalTaxBart)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(netLeftIan - totalTaxIan)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(netLeftNiels - totalTaxNiels)}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
                   <span>Waarvan belasting (IB & Zvw)</span>
                 </div>
               </td>
