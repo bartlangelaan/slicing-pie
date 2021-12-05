@@ -5,7 +5,6 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
 import { Loader } from '../components/Loader';
-import { basicAuthCheck } from '../utils/access';
 import { Header } from '../components/Header';
 
 const DynamicDashboard = dynamic(
@@ -43,8 +42,6 @@ export async function getServerSideProps(ctx: NextPageContext) {
   const { req, res } = ctx;
 
   if (!req || !res) return {};
-
-  await basicAuthCheck(req, res);
 
   return {
     props: {},
