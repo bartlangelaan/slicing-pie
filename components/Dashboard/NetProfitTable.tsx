@@ -146,8 +146,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.min +
     props.totalProfit.openPlus -
     props.totalProfit.openMin +
-    props.totalProfit.personalMin -
-    props.totalProfit.personalPlus +
     (simulatedExtraProfit || 0);
 
   const percentageBart = filteredHoursBart / totalTimeSpentFiltered;
