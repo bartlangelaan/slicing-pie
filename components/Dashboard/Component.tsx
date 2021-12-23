@@ -1,3 +1,4 @@
+import { ErrorBoundary } from 'react-error-boundary';
 import { Loader } from '../Loader';
 import { useSlicingPie } from '../SlicingPieContext';
 import { ClientRevenueTable } from './ClientRevenueTable';
@@ -11,11 +12,18 @@ export function Dashboard() {
   if (!data) return <Loader />;
 
   return (
-    <>
+    <ErrorBoundary
+      FallbackComponent={Loader}
+      onError={() => {
+        window.localStorage.removeItem('slicing-pie.data');
+
+        window.location.reload();
+      }}
+    >
       <SlicingPieChart {...data} />
       <NetProfitTable {...data} />
       <ClientRevenueTable {...data} />
       <ProjectInfoTable {...data} />
-    </>
+    </ErrorBoundary>
   );
 }
