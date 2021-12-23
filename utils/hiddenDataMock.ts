@@ -2,12 +2,27 @@ import { GetSlicingPieResponse } from '../components/Dashboard/GetSlicingPieResp
 
 export const hiddenDataMock = {
   totalProfit: {
-    plus: 2000,
+    plus: 2100,
     min: 1000,
     openPlus: 0,
     openMin: 0,
     personalPlus: 0,
     personalMin: 200,
+    costOfSales: 100,
+  },
+  personalGeneralJournalDocuments: {
+    bart: {
+      plus: 0,
+      min: 0,
+    },
+    ian: {
+      plus: 150,
+      min: 0,
+    },
+    niels: {
+      plus: 50,
+      min: 0,
+    },
   },
   personalCosts: {
     bart: {
