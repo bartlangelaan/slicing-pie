@@ -51,7 +51,7 @@ axios.defaults.headers = {
 
 const client = redis.createClient({
   url: process.env.REDIS,
-  connect_timeout: 5,
+  connect_timeout: 30,
 });
 const store = new RedisStore(client);
 // client.set('bla', 'joe');
@@ -69,7 +69,11 @@ export const api = setup({
   },
 });
 
-const categoriesToSkipAsCosts = ['336003494874973243', '339448075967792536'];
+const categoriesToSkipAsCosts = [
+  '336003494874973243',
+  '339448075967792536',
+  '341893344854541993',
+];
 
 const costOfSalesLedgerAccountIds = ['318138549261043069'];
 
@@ -83,13 +87,13 @@ const ledgerAccountsIds = {
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
-    costs: ['325319664846505435'],
+    costs: ['325319664846505435', '336003494959907902', '339448076044338586'],
     user: '313176631829071688',
   },
   niels: {
     withdrawal: '314080117682865253',
     deposit: '314080117647213666',
-    costs: ['325419671342811059'],
+    costs: ['325419671342811059', '341893346471446200'],
     user: '314352839788856769',
   },
 };
@@ -197,6 +201,16 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     financialMutationsResponses.push(financialMutationsResponse.data[0]);
   }
 
+  const generalJournalDocumentsRequest = requestAll<
+    {
+      general_journal_document_entries: {
+        ledger_account_id: string;
+        debit: string;
+        credit: string;
+      }[];
+    }[]
+  >(`/documents/general_journal_documents.json?filter=period:${periodFilter}`);
+
   const purchaseInvoicesRequest = requestAll<
     {
       state: 'open' | 'new' | 'paid';
@@ -268,11 +282,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   const [
+    generalJournalDocumentsResponse,
     purchaseInvoicesResponse,
     receiptsResponse,
     timeEntriesResponse,
     salesInvoicesResponse,
   ] = await Promise.all([
+    generalJournalDocumentsRequest,
     purchaseInvoicesRequest,
     receiptsRequest,
     timeEntriesRequest,
@@ -385,11 +401,29 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     costOfSales,
   };
 
+  const personalGeneralJournalDocuments =
+    generalJournalDocumentsResponse.reduce((total, item) => {
+      return item.general_journal_document_entries.reduce((subTotal, entry) => {
+        const person = findPerson(entry.ledger_account_id);
+
+        if (!person) return subTotal;
+
+        const price = parseFloat(entry.debit);
+
+        return {
+          ...subTotal,
+          [person]: {
+            plus: subTotal[person].plus + price,
+            min: 0,
+          },
+        };
+      }, total);
+    }, getInitialObject());
+
   const personalFinancialMutations = financialMutationsResponses.reduce(
     (total, item) => {
       return item.ledger_account_bookings.reduce((subTotal, booking) => {
         const person = findPerson(booking.ledger_account_id);
-        // console.log(booking.price, booking.ledger_account_id);
 
         if (!person) return subTotal;
 
@@ -633,6 +667,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         ? 2021
         : 2022,
     totalProfit,
+    personalGeneralJournalDocuments,
     personalCosts,
     personalFinancialMutations,
     personalPurchaseInvoices,

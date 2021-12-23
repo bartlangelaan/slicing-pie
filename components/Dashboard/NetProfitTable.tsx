@@ -151,14 +151,20 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const costsBart =
     props.personalCosts.bart.plus -
     props.personalCosts.bart.min +
+    props.personalGeneralJournalDocuments.bart.plus -
+    props.personalGeneralJournalDocuments.bart.min +
     (simulatedExtraCostsBart || 0);
   const costsIan =
     props.personalCosts.ian.plus -
     props.personalCosts.ian.min +
+    props.personalGeneralJournalDocuments.ian.plus -
+    props.personalGeneralJournalDocuments.ian.min +
     (simulatedExtraCostsIan || 0);
   const costsNiels =
     props.personalCosts.niels.plus -
     props.personalCosts.niels.min +
+    props.personalGeneralJournalDocuments.niels.plus -
+    props.personalGeneralJournalDocuments.niels.min +
     (simulatedExtraCostsNiels || 0);
 
   const simulatedExtraPersonalCosts =

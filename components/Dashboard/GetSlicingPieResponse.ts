@@ -9,6 +9,9 @@ export type GetSlicingPieResponse = {
       fromJulyFiltered: number;
     };
   };
+  personalGeneralJournalDocuments: {
+    [key in Person]: { plus: number; min: number };
+  };
   personalFinancialMutations: {
     [key in Person]: { plus: number; min: number };
   };
