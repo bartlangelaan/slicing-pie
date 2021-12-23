@@ -127,6 +127,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const filteredHoursNiels =
     props.timeSpent.niels.yearFiltered + (simulatedExtraHoursNiels || 0);
 
+  const filteredHours =
+    filteredHoursBart + filteredHoursIan + filteredHoursNiels;
+
   const allHhoursBart =
     props.timeSpent.bart[filterHoursFromJuly ? 'fromJuly' : 'year'] +
     (simulatedExtraHoursBart || 0);
@@ -141,29 +144,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const hoursPerWeekIan = allHhoursIan / numberOfPastWeeks;
   const hoursPerWeekNiels = allHhoursNiels / numberOfPastWeeks;
 
-  const totalProfit =
-    props.totalProfit.plus -
-    props.totalProfit.min +
-    props.totalProfit.openPlus -
-    props.totalProfit.openMin +
-    (simulatedExtraProfit || 0);
-
   const percentageBart = filteredHoursBart / totalTimeSpentFiltered;
   const percentageIan = filteredHoursIan / totalTimeSpentFiltered;
   const percentageNiels = filteredHoursNiels / totalTimeSpentFiltered;
-
-  const grossProfitBart = totalProfit * percentageBart || 0;
-  const grossProfitIan = totalProfit * percentageIan || 0;
-  const grossProfitNiels = totalProfit * percentageNiels || 0;
-
-  const grossProfit = grossProfitBart + grossProfitIan + grossProfitNiels;
-
-  const grossTaxBart = grossProfitBart * config.taxPercentage;
-  const grossTaxIan =
-    (grossProfitIan + config.fiscalCarAdditionIan) * config.taxPercentage;
-  const grossTaxNiels = grossProfitNiels * config.taxPercentage;
-
-  const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
 
   const costsBart =
     props.personalCosts.bart.plus -
@@ -178,12 +161,50 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.personalCosts.niels.min +
     (simulatedExtraCostsNiels || 0);
 
-  const simulatedExtraCosts =
+  const simulatedExtraPersonalCosts =
     (simulatedExtraCostsBart || 0) +
     (simulatedExtraCostsIan || 0) +
     (simulatedExtraCostsNiels || 0);
 
-  const totalCosts = costsBart + costsIan + costsNiels;
+  const totalPersonalCosts = costsBart + costsIan + costsNiels;
+
+  const totalRevenue =
+    props.totalProfit.plus +
+    props.totalProfit.openPlus +
+    (simulatedExtraProfit || 0);
+
+  const grossRevenueBart = totalRevenue * percentageBart || 0;
+  const grossRevenueIan = totalRevenue * percentageIan || 0;
+  const grossRevenueNiels = totalRevenue * percentageNiels || 0;
+
+  const generalCosts =
+    props.totalProfit.min +
+    props.totalProfit.openMin +
+    props.totalProfit.costOfSales +
+    (simulatedExtraPersonalCosts || 0);
+
+  const generalCostsBart = generalCosts * percentageBart || 0;
+  const generalCostsIan = generalCosts * percentageIan || 0;
+  const generalCostsNiels = generalCosts * percentageNiels || 0;
+
+  const totalProfit =
+    props.totalProfit.plus -
+    props.totalProfit.min +
+    props.totalProfit.openPlus -
+    props.totalProfit.openMin -
+    props.totalProfit.costOfSales +
+    (simulatedExtraProfit || 0);
+
+  const grossProfitBart = totalProfit * percentageBart || 0;
+  const grossProfitIan = totalProfit * percentageIan || 0;
+  const grossProfitNiels = totalProfit * percentageNiels || 0;
+
+  const grossTaxBart = grossProfitBart * config.taxPercentage;
+  const grossTaxIan =
+    (grossProfitIan + config.fiscalCarAdditionIan) * config.taxPercentage;
+  const grossTaxNiels = grossProfitNiels * config.taxPercentage;
+
+  const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
 
   const selfEmployedDeductionBart = calculateSelfEmployedDeduction(
     grossProfitBart - costsBart,
@@ -303,6 +324,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitAfterExemptionNiels;
 
   const netTaxBart = grossProfitAfterExemptionBart * config.taxPercentage;
+  // @todo exclude fiscal car addition and render as separate row
   const netTaxIan =
     (grossProfitAfterExemptionIan + config.fiscalCarAdditionIan) *
     config.taxPercentage;
@@ -435,7 +457,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               val.points[0].point.total || 0,
             )}<br/><br/>
 
-            Kosten: ${currencyFormatter.format(val.points[0].point.y || 0)}<br/>
+            Persoonlijke kosten: ${currencyFormatter.format(
+              val.points[0].point.y || 0,
+            )}<br/>
             Aftrekposten: ${
               taxes[person].meetsHourCriterium
                 ? currencyFormatter.format(taxes[person].deduction || 0)
@@ -468,7 +492,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
       series: [
         {
           type: 'column',
-          name: 'Kosten',
+          name: 'Persoonlijke kosten',
           data: [costsBart, costsIan, costsNiels],
           color: 'pink',
         },
@@ -583,7 +607,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right border-r italic">
                 <div>
-                  <span>{currencyFormatter.format(simulatedExtraCosts)}</span>
+                  <span>
+                    {currencyFormatter.format(simulatedExtraPersonalCosts)}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
@@ -890,31 +916,75 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="border-r" />
               <td colSpan={3} />
             </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Slicing pie</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">100%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageBart * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageIan * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(percentageNiels * 1000) / 10}%</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Uren</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{Math.round(filteredHours)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(filteredHoursBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(filteredHoursIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(filteredHoursNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Bruto winst</span>
-                  <div className="text-xs italic">
-                    <a
-                      href={`https://moneybird.com/313185156605150255/sales_invoices/filter/period:${
-                        periodFilter === 2021 &&
-                        new Date().getFullYear() === 2022
-                          ? 'prev_year'
-                          : 'this_year'
-                      },state:scheduled%7Copen%7Cpending_payment%7Clate%7Creminded%7Cpaid`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline"
-                    >
-                      Alle betaalde en openstaande facturen
-                    </a>
-                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
-                    {currencyFormatter.format(grossProfit)}
+                    {currencyFormatter.format(totalProfit)}
                   </span>
                 </div>
               </td>
@@ -937,27 +1007,68 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Slicing pie</span>
+                  <span>Omzet</span>
+                </div>
+                <div className="text-xs italic">
+                  <a
+                    href={`https://moneybird.com/313185156605150255/sales_invoices/filter/period:${
+                      periodFilter === 2021 && new Date().getFullYear() === 2022
+                        ? 'prev_year'
+                        : 'this_year'
+                    },state:scheduled%7Copen%7Cpending_payment%7Clate%7Creminded%7Cpaid`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    Alle betaalde en openstaande facturen
+                  </a>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>100%</span>
+                  <span>{currencyFormatter.format(totalRevenue)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(percentageBart * 1000) / 10}%</span>
+                  <span>{currencyFormatter.format(grossRevenueBart)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(percentageIan * 1000) / 10}%</span>
+                  <span>{currencyFormatter.format(grossRevenueIan)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(percentageNiels * 1000) / 10}%</span>
+                  <span>{currencyFormatter.format(grossRevenueNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Algemene kosten</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{currencyFormatter.format(generalCosts)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(generalCostsBart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(generalCostsIan)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(generalCostsNiels)}</span>
                 </div>
               </td>
             </tr>
@@ -976,7 +1087,9 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>{currencyFormatter.format(grossTax)}</span>
+                  <span className="font-medium">
+                    {currencyFormatter.format(grossTax)}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
@@ -1034,13 +1147,13 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span className="font-medium">Kosten</span>
+                  <span className="font-medium">Persoolijke kosten</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
-                    {currencyFormatter.format(totalCosts)}
+                    {currencyFormatter.format(totalPersonalCosts)}
                   </span>
                 </div>
               </td>
@@ -1072,7 +1185,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     {currencyFormatter.format(
                       props.totalProfit.plus -
                         props.totalProfit.min -
-                        totalCosts,
+                        totalPersonalCosts,
                     )}
                   </span>
                 </div>

@@ -51,6 +51,7 @@ axios.defaults.headers = {
 
 const client = redis.createClient({
   url: process.env.REDIS,
+  connect_timeout: 5,
 });
 const store = new RedisStore(client);
 // client.set('bla', 'joe');
@@ -68,7 +69,9 @@ export const api = setup({
   },
 });
 
-const categoriesToSkipAsCosts = ['336003494874973243'];
+const categoriesToSkipAsCosts = ['336003494874973243', '339448075967792536'];
+
+const costOfSalesLedgerAccountIds = ['318138549261043069'];
 
 const ledgerAccountsIds = {
   bart: {
@@ -179,6 +182,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const financialMutationsResponse = await api.post<
       {
         amount: string;
+        currency: 'USD' | 'EUR';
+        exchange_rate: string;
         ledger_account_bookings: {
           ledger_account_id: string;
           price: string;
@@ -196,9 +201,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     {
       state: 'open' | 'new' | 'paid';
       total_price_excl_tax: string;
+      currency: 'USD' | 'EUR';
+      exchange_rate: string;
       details: {
         ledger_account_id: string;
         price: string;
+        total_price_excl_tax_with_discount?: string;
         total_price_excl_tax_with_discount_base?: string;
       }[];
       payments: {
@@ -212,7 +220,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   const receiptsRequest = requestAll<
     {
       total_price_excl_tax: string;
-      details: { ledger_account_id: string; price: string }[];
+      currency: 'USD' | 'EUR';
+      exchange_rate: string;
+      details: {
+        ledger_account_id: string;
+        price: string;
+        total_price_excl_tax_with_discount?: string;
+        total_price_excl_tax_with_discount_base?: string;
+      }[];
       payments: { ledger_account_id: string; price: string }[];
     }[]
   >('/documents/receipts.json');
@@ -288,19 +303,29 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     ...purchaseInvoicesResponse,
     ...receiptsResponse,
   ].reduce((total, item) => {
-    // If an item's ledger account id should be skipped.
-    // This is the case for categories on the accounting balance (e.g. investments).
-    if (
-      item.details.some((detail) =>
-        categoriesToSkipAsCosts.includes(detail.ledger_account_id),
+    return item.details.reduce((subTotal, detail) => {
+      const person = findPerson(detail.ledger_account_id);
+
+      if (
+        // This purchase is considered a personal cost.
+        person ||
+        // If an item's ledger account id should be skipped.
+        // This is the case for categories on the accounting balance (e.g. investments).
+        categoriesToSkipAsCosts.includes(detail.ledger_account_id) ||
+        costOfSalesLedgerAccountIds.includes(detail.ledger_account_id)
       )
-    ) {
-      return total;
-    }
+        return subTotal;
 
-    const price = parseFloat(item.total_price_excl_tax);
+      let price = parseFloat(
+        detail.total_price_excl_tax_with_discount || detail.price,
+      );
 
-    return total + price;
+      if (item.currency === 'USD') {
+        price *= parseFloat(item.exchange_rate || '1');
+      }
+
+      return subTotal + price;
+    }, total);
   }, 0);
 
   const totalProfitOpenPlus = salesInvoicesResponse.reduce((total, item) => {
@@ -321,9 +346,33 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // If this item is booked as a personal cost, skip it for the openMin calculation since it is already calculated as a personal cost.
     if (belongsToPeronalCosts) return total;
 
-    const price = parseFloat(item.total_price_excl_tax);
+    let price = parseFloat(item.total_price_excl_tax);
+
+    if (item.currency === 'USD') {
+      price *= parseFloat(item.exchange_rate || '1');
+    }
 
     return total + price;
+  }, 0);
+
+  const costOfSales = purchaseInvoicesResponse.reduce((total, item) => {
+    return item.details.reduce((subTotal, detail) => {
+      const isCostOfSales = costOfSalesLedgerAccountIds.includes(
+        detail.ledger_account_id,
+      );
+
+      if (!isCostOfSales) return subTotal;
+
+      let price = parseFloat(
+        detail.total_price_excl_tax_with_discount || detail.price,
+      );
+
+      if (item.currency === 'USD') {
+        price *= parseFloat(item.exchange_rate || '1');
+      }
+
+      return subTotal + price;
+    }, total);
   }, 0);
 
   const totalProfit = {
@@ -333,6 +382,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     openMin: totalProfitOpenMin,
     personalPlus: 0,
     personalMin: 0,
+    costOfSales,
   };
 
   const personalFinancialMutations = financialMutationsResponses.reduce(
@@ -343,7 +393,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (!person) return subTotal;
 
-        const price = parseFloat(booking.price);
+        let price = parseFloat(booking.price);
+
+        if (item.currency === 'USD') {
+          price *= parseFloat(item.exchange_rate || '1');
+        }
 
         if (price > 0) totalProfit.personalPlus += price;
         else totalProfit.personalMin -= price;
@@ -367,7 +421,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (!person) return subTotal;
 
-        const price = parseFloat(booking.price_base || booking.price);
+        let price = parseFloat(booking.price_base || booking.price);
+
+        if (item.currency === 'USD') {
+          price *= parseFloat(item.exchange_rate || '1');
+        }
 
         return {
           ...subTotal,
@@ -387,7 +445,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!person) return subTotal;
 
-      const price = parseFloat(booking.price);
+      let price = parseFloat(booking.price);
+
+      if (item.currency === 'USD') {
+        price *= parseFloat(item.exchange_rate || '1');
+      }
 
       return {
         ...subTotal,
@@ -406,13 +468,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       if (!person) return subTotal;
 
       let price = parseFloat(
-        detail.total_price_excl_tax_with_discount_base || detail.price,
+        detail.total_price_excl_tax_with_discount || detail.price,
       );
 
-      if (item.details.length === 1 && item.payments.length === 1) {
-        price = parseFloat(
-          item.payments[0].price_base || item.payments[0].price,
-        );
+      if (item.currency === 'USD') {
+        price *= parseFloat(item.exchange_rate || '1');
       }
 
       return {

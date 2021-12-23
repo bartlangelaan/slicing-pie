@@ -22,6 +22,7 @@ export type GetSlicingPieResponse = {
     openMin: number;
     personalPlus: number;
     personalMin: number;
+    costOfSales: number;
   };
   revenuePerAccount: {
     id: string;

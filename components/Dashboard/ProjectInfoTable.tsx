@@ -134,7 +134,7 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
             {props.timeSpentPerProject
               .filter((project) => !project.skipped)
               .map((project) => (
-                <ProjectInfoRow project={project} />
+                <ProjectInfoRow project={project} key={project.id} />
               ))}
             <tr className="h-10 border-b">
               <td className="border-r" />
@@ -222,7 +222,7 @@ export function ProjectInfoTable(props: GetSlicingPieResponse) {
             {props.timeSpentPerProject
               .filter((project) => project.skipped)
               .map((project) => (
-                <ProjectInfoRow project={project} />
+                <ProjectInfoRow project={project} key={project.id} />
               ))}
             <tr className="h-10 border-b">
               <td className="border-r" />
