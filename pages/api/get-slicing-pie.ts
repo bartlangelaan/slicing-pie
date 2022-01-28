@@ -278,7 +278,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       };
     }[]
   >(
-    `/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid&period:${periodFilter}`,
+    `/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid,period:${periodFilter}`,
   );
 
   const [
