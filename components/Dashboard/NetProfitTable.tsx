@@ -14,7 +14,8 @@ const config2021 = {
   minHoursPerWeek: (1225 - 24 * 26) / 26,
   minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
   // Year costs / number of days * number of days from 01/09 - 31/12
-  fiscalCarAdditionIan: (4649 / 365) * 120,
+  // fiscalCarAdditionIan: (4649 / 365) * 120,
+  fiscalCarAdditionIan: 0,
   maxSelfEmployedDeduction: 6670,
   maxStartupDeduction: 2123,
   maxStartupDeductionUnfitForWork: 12000,
