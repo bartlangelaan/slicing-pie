@@ -19,7 +19,9 @@ const config2021 = {
   maxSelfEmployedDeduction: 6670,
   maxStartupDeduction: 2123,
   maxStartupDeductionUnfitForWork: 12000,
-  SSIDeductionValueIan: 2652.07,
+  SSIDeductionValueBart: 0,
+  SSIDeductionValueIan: 3122.32,
+  SSIDeductionValueNiels: 778.42,
   minSSIDeduction: 2401,
   maxSSIDeduction: 59170,
   SSIDectionPercentage: 0.28,
@@ -265,10 +267,12 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const startupDeduction =
     startupDeductionBart + startupDeductionIan + startupDeductionNiels;
 
-  const SSIDeductionBart = 0;
+  const SSIDeductionBart =
+    config.SSIDeductionValueBart * config.SSIDectionPercentage;
   const SSIDeductionIan =
     config.SSIDeductionValueIan * config.SSIDectionPercentage;
-  const SSIDeductionNiels = 0;
+  const SSIDeductionNiels =
+    config.SSIDeductionValueNiels * config.SSIDectionPercentage;
 
   const SSIDeduction = SSIDeductionBart + SSIDeductionIan + SSIDeductionNiels;
 
@@ -1115,7 +1119,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 </div>
               </td>
             </tr>
-            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+            {/* <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span>Waarvan fiscale bijtelling</span>
@@ -1145,7 +1149,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                   <span>{currencyFormatter.format(0)}</span>
                 </div>
               </td>
-            </tr>
+            </tr> */}
             <tr className="h-10 border-b">
               <td className="border-r" />
               <td className="border-r" />
@@ -1398,7 +1402,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(0)}</span>
+                  <span>{currencyFormatter.format(SSIDeductionBart)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
@@ -1408,7 +1412,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(0)}</span>
+                  <span>{currencyFormatter.format(SSIDeductionNiels)}</span>
                 </div>
               </td>
             </tr>
