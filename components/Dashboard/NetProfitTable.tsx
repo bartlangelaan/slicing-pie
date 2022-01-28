@@ -113,7 +113,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const numberOfPastWeeks =
     (Date.now() -
-      new Date(filterHoursFromJuly ? '2021-07-01' : '2021-01-01').getTime()) /
+      new Date(filterHoursFromJuly ? '2021-07-01' : '2022-01-01').getTime()) /
     (7 * 24 * 60 * 60 * 1000);
 
   const simulatedExtraHours =
