@@ -4,9 +4,22 @@ import { useSlicingPie } from './SlicingPieContext';
 const StyledHeader = styled.header<{
   isRefreshingData: boolean;
   hiddenModeEnabled: boolean;
+  cantRetry: boolean;
 }>`
-  background-color: ${(p) =>
-    p.isRefreshingData || p.hiddenModeEnabled ? '#c38437' : '#3790c3'};
+  background-color: #3790c3;
+
+  ${(p) =>
+    (p.isRefreshingData || p.hiddenModeEnabled) &&
+    css`
+      background-color: #c38437;
+    `};
+
+  ${(p) =>
+    p.cantRetry &&
+    css`
+      background-color: #c33737;
+    `};
+
   transition: ease-in-out 0.2s;
 `;
 
@@ -42,6 +55,7 @@ export function Header() {
       className="text-white p-6 flex sticky top-0 z-20"
       isRefreshingData={slicingPie.isRefreshingSlicingPie}
       hiddenModeEnabled={slicingPie.hiddenModeEnabled}
+      cantRetry={!slicingPie.canRetry}
     >
       <h1 className="text-xl flex items-center content-center">
         <img
@@ -56,6 +70,7 @@ export function Header() {
         <li>
           <FilterItemButton
             active={slicingPie.periodFilter === 2021}
+            disabled={!slicingPie.canRetry}
             onClick={() => {
               slicingPie.setPeriodFilter(2021);
             }}
@@ -66,7 +81,7 @@ export function Header() {
         <li className="ml-2">
           <FilterItemButton
             active={slicingPie.periodFilter === 2022}
-            disabled={new Date().getFullYear() === 2021}
+            disabled={!slicingPie.canRetry}
             onClick={() => {
               slicingPie.setPeriodFilter(2022);
             }}
@@ -75,7 +90,7 @@ export function Header() {
           </FilterItemButton>
         </li>
       </ul>
-      <button
+      {/* <button
         className="mr-4"
         type="button"
         onClick={() => {
@@ -94,10 +109,11 @@ export function Header() {
         >
           {`visibility${slicingPie.hiddenModeEnabled ? '_off' : ''}`}
         </span>
-      </button>
+      </button> */}
       <button
         className=""
         type="button"
+        disabled={!slicingPie.canRetry}
         onClick={() => {
           slicingPie.fetchData();
         }}

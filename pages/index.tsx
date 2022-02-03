@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 
 import { Loader } from '../components/Loader';
 import { Header } from '../components/Header';
+import { useSlicingPie } from '../components/SlicingPieContext';
 
 const DynamicDashboard = dynamic(
   () =>
@@ -23,6 +24,8 @@ if (typeof Highcharts === 'object') {
 }
 
 export default function Home() {
+  const { retryAfter } = useSlicingPie();
+
   return (
     <>
       <Head>
@@ -31,7 +34,17 @@ export default function Home() {
       <div className="bg-white flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center bg-gray-50 flex-col">
-          <DynamicDashboard />
+          {retryAfter ? (
+            <>
+              <h1 className="text-2xl">Moneybird rate limit overschreden</h1>
+              <p>
+                Probeer het opnieuw om{' '}
+                {new Date(retryAfter).toLocaleTimeString('nl')}
+              </p>
+            </>
+          ) : (
+            <DynamicDashboard />
+          )}
         </div>
       </div>
     </>

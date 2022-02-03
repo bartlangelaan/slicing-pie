@@ -5,72 +5,133 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
-import { GetSlicingPieResponse } from './Dashboard/GetSlicingPieResponse';
+import {
+  GetSlicingPieResponse,
+  GetSlicingPieErrorResponse,
+} from './Dashboard/GetSlicingPieResponse';
+
+type YearFilter = 2021 | 2022;
+
+type CacheData = { [key in YearFilter]?: GetSlicingPieResponse } | null;
 
 function useSlicingPieContextValue() {
-  const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState(true);
+  const [periodFilter, setPeriodFilter] = useState<YearFilter>(2022);
+
+  const [retryAfter, setRetryAfter] = useState<number | null>(null);
+  const canRetry = !retryAfter || Date.now() > retryAfter;
+
+  useEffect(() => {
+    if (!retryAfter) return () => {};
+
+    const interval = setInterval(() => {
+      if (!retryAfter) {
+        clearInterval(interval);
+      }
+
+      if (Date.now() > retryAfter) {
+        setRetryAfter(null);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [retryAfter]);
+
+  const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState<{
+    [key in YearFilter]?: boolean;
+  }>({
+    [periodFilter]: true,
+  });
   const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
     typeof window !== 'undefined'
       ? window.localStorage.getItem('slicing-pie.hidden-mode') === 'true'
       : false,
   );
-  const [periodFilter, setPeriodFilter] = useState<2021 | 2022>(2021);
 
   const dataStringFromCache =
     typeof window !== 'undefined'
       ? window.localStorage.getItem('slicing-pie.data')
       : null;
-  let dataFromCache: GetSlicingPieResponse | null = null;
+  let dataFromCache: CacheData = null;
 
   try {
     if (dataStringFromCache) {
-      dataFromCache = JSON.parse(dataStringFromCache) as GetSlicingPieResponse;
+      dataFromCache = JSON.parse(dataStringFromCache) as CacheData;
     }
   } catch {
     // Skip.
   }
 
-  const [data, setData] = useState<GetSlicingPieResponse | null>(dataFromCache);
+  const [data, setData] = useState<CacheData>(dataFromCache);
   const [hiddenModeData, setHiddenModeData] =
     useState<GetSlicingPieResponse | null>(null);
 
+  const controller = useRef(new AbortController());
+
   const fetchData = useCallback(async () => {
-    setIsRefreshingSlicingPie(true);
+    // Cancel previous load request.
+    // controller.current.abort();
+    controller.current = new AbortController();
 
-    const response = await axios.get<GetSlicingPieResponse>(
-      `/api/get-slicing-pie?periodFilter=${periodFilter}`,
-    );
+    setIsRefreshingSlicingPie((currentIsRefreshingSlicingPie) => ({
+      ...currentIsRefreshingSlicingPie,
+      [periodFilter]: true,
+    }));
 
-    if (response.data) {
-      setData(response.data);
-      window.localStorage.setItem(
-        'slicing-pie.data',
-        JSON.stringify(response.data),
-      );
+    const response = await axios.get<
+      GetSlicingPieResponse | GetSlicingPieErrorResponse
+    >(`/api/get-slicing-pie?periodFilter=${periodFilter}`);
+
+    if (response.data?.status === 200) {
+      setData((currentData) => {
+        const newData: CacheData = {
+          ...currentData,
+          [periodFilter]: response.data,
+        };
+
+        window.localStorage.setItem(
+          'slicing-pie.data',
+          JSON.stringify(newData),
+        );
+
+        return newData;
+      });
+    } else {
+      setRetryAfter(parseInt(response.data.retryAfter, 10) * 1000);
     }
 
-    setIsRefreshingSlicingPie(false);
+    setIsRefreshingSlicingPie((currentIsRefreshingSlicingPie) => ({
+      ...currentIsRefreshingSlicingPie,
+      [periodFilter]: false,
+    }));
   }, [periodFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      axios
-        .get<GetSlicingPieResponse>('/api/get-slicing-pie?hidden=true')
-        .then((response) => {
-          setHiddenModeData(response.data);
-        });
-    }, 1000);
 
     return () => {
-      clearTimeout(timeout);
+      controller.current.abort();
     };
-  }, []);
+  }, [fetchData]);
+
+  // useEffect(() => {
+  //   const timeout = window.setTimeout(() => {
+  //     axios
+  //       .get<GetSlicingPieResponse>('/api/get-slicing-pie?hidden=true')
+  //       .then((response) => {
+  //         setHiddenModeData(response.data);
+  //       });
+  //   }, 1000);
+
+  //   return () => {
+  //     clearTimeout(timeout);
+  //   };
+  // }, []);
 
   useEffect(() => {
     localStorage.setItem(
@@ -80,14 +141,20 @@ function useSlicingPieContextValue() {
   }, [hiddenModeEnabled]);
 
   return {
-    isRefreshingSlicingPie,
+    isRefreshingSlicingPie: !!isRefreshingSlicingPie[periodFilter],
     setIsRefreshingSlicingPie,
-    data: hiddenModeEnabled && hiddenModeData ? hiddenModeData : data,
+    data:
+      hiddenModeEnabled && hiddenModeData
+        ? hiddenModeData
+        : data?.[periodFilter],
     fetchData,
     hiddenModeEnabled,
     setHiddenModeEnabled,
     periodFilter,
     setPeriodFilter,
+    retryAfter,
+    canRetry,
+    setRetryAfter,
   };
 }
 

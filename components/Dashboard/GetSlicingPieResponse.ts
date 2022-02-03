@@ -1,6 +1,7 @@
 export type Person = 'bart' | 'ian' | 'niels';
 
 export type GetSlicingPieResponse = {
+  status: 200;
   timeSpent: {
     [key in Person]: {
       year: number;
@@ -41,3 +42,8 @@ export type GetSlicingPieResponse = {
     timeSpent: { [key in Person]: { billable: number; nonBillable: number } };
   }[];
 };
+
+export interface GetSlicingPieErrorResponse {
+  status: 429;
+  retryAfter: string;
+}
