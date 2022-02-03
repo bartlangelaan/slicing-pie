@@ -121,7 +121,7 @@ function useSlicingPieContextValue() {
     fetchData();
 
     return () => {
-      controller.current.abort();
+      controller.current?.abort();
     };
   }, [fetchData]);
 
