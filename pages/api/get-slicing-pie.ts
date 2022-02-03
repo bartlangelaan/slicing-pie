@@ -57,6 +57,7 @@ const client = redis.createClient({
   url: process.env.REDIS_URL,
 });
 const store = new RedisStore(client);
+
 // client.set('bla', 'joe');
 export const api = setup({
   // `axios` options
@@ -158,6 +159,16 @@ export async function requestAll<T>(
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
+
+  await new Promise((resolve, reject) => {
+    client
+      .on('error', () => {
+        reject(client);
+      })
+      .on('ready', () => {
+        resolve(client);
+      });
+  });
 
   const periodFilter =
     req.query.periodFilter === '2021' && new Date().getFullYear() === 2022
