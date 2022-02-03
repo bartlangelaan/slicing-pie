@@ -52,7 +52,7 @@ axios.defaults.headers = {
 // @todo arbeidskorting
 // @todo Sandbox administratie
 // @todo timeline? Alles teruggeven aan frontend en "rewind" en/of periode filters toevoegen
-
+console.log('redis', process.env.REDIS_URL);
 const client = redis.createClient({
   url: process.env.REDIS_URL,
   connect_timeout: 30,
