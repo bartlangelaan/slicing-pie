@@ -56,6 +56,11 @@ axios.defaults.headers = {
 const client = redis.createClient({
   url: process.env.REDIS_URL,
 });
+
+client.on('error', (err) => {
+  console.error('after createClient', err);
+});
+
 const store = new RedisStore(client);
 
 // client.set('bla', 'joe');
@@ -162,7 +167,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   await new Promise((resolve, reject) => {
     client
-      .on('error', () => {
+      .on('error', (err) => {
+        console.error('reject', err);
         reject(client);
       })
       .on('ready', () => {
