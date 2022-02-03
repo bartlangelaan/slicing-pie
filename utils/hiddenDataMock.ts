@@ -1,6 +1,7 @@
 import { GetSlicingPieResponse } from '../components/Dashboard/GetSlicingPieResponse';
 
 export const hiddenDataMock = {
+  status: 200,
   totalProfit: {
     plus: 2100,
     min: 1000,

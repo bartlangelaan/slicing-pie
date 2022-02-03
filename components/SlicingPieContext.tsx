@@ -68,8 +68,10 @@ function useSlicingPieContextValue() {
   }
 
   const [data, setData] = useState<CacheData>(dataFromCache);
-  const [hiddenModeData, setHiddenModeData] =
-    useState<GetSlicingPieResponse | null>(null);
+  const [
+    hiddenModeData,
+    // setHiddenModeData
+  ] = useState<GetSlicingPieResponse | null>(null);
 
   const controller = useRef(new AbortController());
 
