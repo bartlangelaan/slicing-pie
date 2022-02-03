@@ -58,6 +58,7 @@ const client = redis.createClient({
 });
 
 client.on('error', (err) => {
+  // eslint-disable-next-line no-console
   console.error('after createClient', err);
 });
 
@@ -157,6 +158,7 @@ export async function requestAll<T>(
 
     return res.map((req) => req.data).flat();
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error(err);
     throw err;
   }
@@ -165,28 +167,37 @@ export async function requestAll<T>(
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
 
-  await new Promise((resolve, reject) => {
-    client
-      .on('error', (err) => {
-        console.error('reject', err);
-        reject(client);
-      })
-      .on('ready', () => {
-        resolve(client);
-      });
-  });
-
-  const periodFilter =
-    req.query.periodFilter === '2021' && new Date().getFullYear() === 2022
-      ? 'prev_year'
-      : 'this_year';
-
   const hiddenModeEnabled = !!req.query.hidden;
 
   if (hiddenModeEnabled) {
     res.json(hiddenDataMock);
     return;
   }
+
+  if (!client.connected) {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(client);
+      }, 5000);
+
+      client
+        .on('error', (err) => {
+          // eslint-disable-next-line no-console
+          console.error('reject', err);
+          reject(client);
+          clearTimeout(timeout);
+        })
+        .on('ready', () => {
+          resolve(client);
+          clearTimeout(timeout);
+        });
+    });
+  }
+
+  const periodFilter =
+    req.query.periodFilter === '2021' && new Date().getFullYear() === 2022
+      ? 'prev_year'
+      : 'this_year';
 
   try {
     const financialMutationsSyncResponse = await requestAll<
