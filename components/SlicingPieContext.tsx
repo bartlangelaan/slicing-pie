@@ -73,11 +73,13 @@ function useSlicingPieContextValue() {
     // setHiddenModeData
   ] = useState<GetSlicingPieResponse | null>(null);
 
-  const controller = useRef(new AbortController());
+  const controller = useRef(
+    typeof window !== 'undefined' ? new AbortController() : null,
+  );
 
   const fetchData = useCallback(async () => {
     // Cancel previous load request.
-    // controller.current.abort();
+    controller.current?.abort();
     controller.current = new AbortController();
 
     setIsRefreshingSlicingPie((currentIsRefreshingSlicingPie) => ({
@@ -87,7 +89,9 @@ function useSlicingPieContextValue() {
 
     const response = await axios.get<
       GetSlicingPieResponse | GetSlicingPieErrorResponse
-    >(`/api/get-slicing-pie?periodFilter=${periodFilter}`);
+    >(`/api/get-slicing-pie?periodFilter=${periodFilter}`, {
+      signal: controller.current?.signal,
+    });
 
     if (response.data?.status === 200) {
       setData((currentData) => {
