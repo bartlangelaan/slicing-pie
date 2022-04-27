@@ -11,15 +11,12 @@ const config2021 = {
   maxHIA: 3353,
   filterHoursFromJuly: true,
   hourCriterium: 1225 - 24 * 26,
-  hourCriteriumUnfitForWork: 800 - 16 * 26,
   minHoursPerWeek: (1225 - 24 * 26) / 26,
-  minHoursPerWeekUnfitForWork: (800 - 16 * 26) / 26,
   // Year costs / number of days * number of days from 01/09 - 31/12
   // fiscalCarAdditionIan: (4649 / 365) * 120,
   fiscalCarAdditionIan: 0,
   maxSelfEmployedDeduction: 6670,
   maxStartupDeduction: 2123,
-  maxStartupDeductionUnfitForWork: 12000,
   SSIDeductionValueBart: 0,
   SSIDeductionValueIan: 3122.32,
   SSIDeductionValueNiels: 778.42,
@@ -39,9 +36,7 @@ const config2022 = {
   ...config2021,
   filterHoursFromJuly: false,
   hourCriterium: 1225,
-  hourCriteriumUnfitForWork: 800,
   minHoursPerWeek: 1225 / 52,
-  minHoursPerWeekUnfitForWork: 800 / 52,
   pieDistributionKey: 0.2,
   lastYearPie: {
     bart: 0.0669,
@@ -63,10 +58,9 @@ const currencyFormatter = Intl.NumberFormat('nl', {
 function calculateSelfEmployedDeduction(
   grossProfit: number,
   hourCriterium: boolean,
-  unfitForWork: boolean,
   maxSelfEmployedDeduction: number,
 ) {
-  if (!hourCriterium || unfitForWork) return 0;
+  if (!hourCriterium) return 0;
 
   if (grossProfit < maxSelfEmployedDeduction) return grossProfit;
 
@@ -104,11 +98,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const { periodFilter } = useSlicingPie();
 
   const config = configs[periodFilter];
-
-  const [unfitForWorkAll, setUnfitForWorkAll] = useState(false);
-  const [unfitForWorkBart, setUnfitForWorkBart] = useState(false);
-  const [unfitForWorkIan, setUnfitForWorkIan] = useState(false);
-  const [unfitForWorkNiels, setUnfitForWorkNiels] = useState(false);
 
   const [meetsHourCriteriumAll, setMeetsHourCriteriumAll] = useState(false);
   const [meetsHourCriteriumBart, setMeetsHourCriteriumBart] = useState(false);
@@ -257,19 +246,16 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const selfEmployedDeductionBart = calculateSelfEmployedDeduction(
     grossProfitBart - costsBart,
     meetsHourCriteriumBart,
-    unfitForWorkBart,
     config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionIan = calculateSelfEmployedDeduction(
     grossProfitIan - costsIan + config.fiscalCarAdditionIan,
     meetsHourCriteriumIan,
-    unfitForWorkIan,
     config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionNiels = calculateSelfEmployedDeduction(
     grossProfitNiels - costsNiels,
     meetsHourCriteriumNiels,
-    unfitForWorkNiels,
     config.maxSelfEmployedDeduction,
   );
 
@@ -282,25 +268,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitBart - costsBart,
     meetsHourCriteriumBart,
     applyStartupDeductionBart,
-    unfitForWorkBart
-      ? config.maxStartupDeductionUnfitForWork
-      : config.maxStartupDeduction,
+    config.maxStartupDeduction,
   );
   const startupDeductionIan = calculateStartupDeduction(
     grossProfitIan - costsIan + config.fiscalCarAdditionIan,
     meetsHourCriteriumIan,
     applyStartupDeductionIan,
-    unfitForWorkIan
-      ? config.maxStartupDeductionUnfitForWork
-      : config.maxStartupDeduction,
+    config.maxStartupDeduction,
   );
   const startupDeductionNiels = calculateStartupDeduction(
     grossProfitNiels - costsNiels,
     meetsHourCriteriumNiels,
     applyStartupDeductionNiels,
-    unfitForWorkNiels
-      ? config.maxStartupDeductionUnfitForWork
-      : config.maxStartupDeduction,
+    config.maxStartupDeduction,
   );
 
   const startupDeduction =
@@ -770,71 +750,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span className="font-medium">(Deels) arbeidsongeschikt</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center border-r">
-                <input
-                  type="checkbox"
-                  className="form-checkbox rounded"
-                  checked={unfitForWorkAll}
-                  onChange={() => {
-                    setUnfitForWorkAll((currentUnfitForWorkAll) => {
-                      setUnfitForWorkBart(!currentUnfitForWorkAll);
-                      setUnfitForWorkIan(!currentUnfitForWorkAll);
-                      setUnfitForWorkNiels(!currentUnfitForWorkAll);
-
-                      return !currentUnfitForWorkAll;
-                    });
-                  }}
-                />
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkBart}
-                    onChange={() => {
-                      setUnfitForWorkBart(
-                        (currentUnfitForWorkBart) => !currentUnfitForWorkBart,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkIan}
-                    onChange={() => {
-                      setUnfitForWorkIan(
-                        (currentUnfitForWorkIan) => !currentUnfitForWorkIan,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={unfitForWorkNiels}
-                    onChange={() => {
-                      setUnfitForWorkNiels(
-                        (currentUnfitForWorkNiels) => !currentUnfitForWorkNiels,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
                   <span className="font-medium">Voldoet aan urencriterium</span>
                   <div className="text-xs italic">
                     Automatisch berekend o.b.v. geschreven uren tussen 1{' '}
@@ -873,23 +788,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     }}
                   />
                   <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkBart
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeek
-                    ).toFixed(1)}{' '}
-                    uur / week
+                    min. {config.minHoursPerWeek.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     nu {hoursPerWeekBart.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     {allHhoursBart.toFixed(0)} /{' '}
-                    {(unfitForWorkBart
-                      ? config.hourCriteriumUnfitForWork
-                      : config.hourCriterium
-                    ).toFixed(0)}{' '}
-                    uren geboekt
+                    {config.hourCriterium.toFixed(0)} uren geboekt
                   </div>
                 </div>
               </td>
@@ -907,23 +813,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     }}
                   />
                   <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkIan
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeek
-                    ).toFixed(1)}{' '}
-                    uur / week
+                    min. {config.minHoursPerWeek.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     nu {hoursPerWeekIan.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     {allHhoursIan.toFixed(0)} /{' '}
-                    {(unfitForWorkIan
-                      ? config.hourCriteriumUnfitForWork
-                      : config.hourCriterium
-                    ).toFixed(0)}{' '}
-                    uren geboekt
+                    {config.hourCriterium.toFixed(0)} uren geboekt
                   </div>
                 </div>
               </td>
@@ -941,23 +838,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     }}
                   />
                   <div className="mt-2">
-                    min.{' '}
-                    {(unfitForWorkNiels
-                      ? config.minHoursPerWeekUnfitForWork
-                      : config.minHoursPerWeek
-                    ).toFixed(1)}{' '}
-                    uur / week
+                    min. {config.minHoursPerWeek.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     nu {hoursPerWeekNiels.toFixed(1)} uur / week
                   </div>
                   <div className="mt-2">
                     {allHhoursNiels.toFixed(0)} /{' '}
-                    {(unfitForWorkNiels
-                      ? config.hourCriteriumUnfitForWork
-                      : config.hourCriterium
-                    ).toFixed(0)}{' '}
-                    uren geboekt
+                    {config.hourCriterium.toFixed(0)} uren geboekt
                   </div>
                 </div>
               </td>
@@ -1398,9 +1286,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 <div>
                   <span className="font-medium">Zelfstandigenaftrek</span>
                   <div className="text-xs italic">
-                    Max. 100%,{' '}
-                    {currencyFormatter.format(config.maxSelfEmployedDeduction)},
-                    of {currencyFormatter.format(0)} bij arbeidsongeschiktheid
+                    Max. 100% of{' '}
+                    {currencyFormatter.format(config.maxSelfEmployedDeduction)}
                   </div>
                 </div>
               </td>
@@ -1438,12 +1325,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 <div>
                   <span className="font-medium">Startersaftrek</span>
                   <div className="text-xs italic">
-                    Max. 100%,{' '}
-                    {currencyFormatter.format(config.maxStartupDeduction)}, of{' '}
-                    {currencyFormatter.format(
-                      config.maxStartupDeductionUnfitForWork,
-                    )}{' '}
-                    bij arbeidsongeschiktheid
+                    Max. 100% of{' '}
+                    {currencyFormatter.format(config.maxStartupDeduction)}
                   </div>
                 </div>
               </td>
