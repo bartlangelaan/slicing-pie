@@ -67,6 +67,8 @@ function useSlicingPieContextValue() {
     // Skip.
   }
 
+  const hasDataFromCache = !!dataFromCache;
+
   const [data, setData] = useState<CacheData>(dataFromCache);
   const [
     hiddenModeData,
@@ -118,12 +120,20 @@ function useSlicingPieContextValue() {
   }, [periodFilter]);
 
   useEffect(() => {
+    if (hasDataFromCache && new Date().getFullYear() > periodFilter) {
+      return () => {
+        //
+      };
+    }
+
+    console.log(hasDataFromCache, periodFilter);
+
     fetchData();
 
     return () => {
       controller.current?.abort();
     };
-  }, [fetchData]);
+  }, [fetchData, hasDataFromCache, periodFilter]);
 
   // useEffect(() => {
   //   const timeout = window.setTimeout(() => {
