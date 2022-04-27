@@ -42,17 +42,6 @@ function useSlicingPieContextValue() {
     };
   }, [retryAfter]);
 
-  const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState<{
-    [key in YearFilter]?: boolean;
-  }>({
-    [periodFilter]: true,
-  });
-  const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('slicing-pie.hidden-mode') === 'true'
-      : false,
-  );
-
   const dataStringFromCache =
     typeof window !== 'undefined'
       ? window.localStorage.getItem('slicing-pie.data')
@@ -68,6 +57,17 @@ function useSlicingPieContextValue() {
   }
 
   const hasDataFromCache = !!dataFromCache;
+
+  const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState<{
+    [key in YearFilter]?: boolean;
+  }>({
+    [periodFilter]: !hasDataFromCache,
+  });
+  const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('slicing-pie.hidden-mode') === 'true'
+      : false,
+  );
 
   const [data, setData] = useState<CacheData>(dataFromCache);
   const [
@@ -120,7 +120,10 @@ function useSlicingPieContextValue() {
   }, [periodFilter]);
 
   useEffect(() => {
-    if (hasDataFromCache && new Date().getFullYear() > periodFilter) {
+    if (
+      hasDataFromCache
+      // && new Date().getFullYear() > periodFilter
+    ) {
       return () => {
         //
       };
