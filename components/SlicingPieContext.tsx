@@ -56,7 +56,7 @@ function useSlicingPieContextValue() {
     // Skip.
   }
 
-  const hasDataFromCache = !!dataFromCache;
+  const hasDataFromCache = !!dataFromCache?.[periodFilter];
 
   const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState<{
     [key in YearFilter]?: boolean;
