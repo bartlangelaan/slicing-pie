@@ -398,6 +398,14 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const totalTax = totalTaxBart + totalTaxIan + totalTaxNiels;
 
+  const totalTaxBartPercentage = totalTaxBart / grossProfitBart;
+  const totalTaxIanPercentage = totalTaxIan / grossProfitIan;
+  const totalTaxNielsPercentage = totalTaxNiels / grossProfitNiels;
+
+  const averageTaxPercentage =
+    (totalTaxBartPercentage + totalTaxIanPercentage + totalTaxNielsPercentage) /
+    3;
+
   const profitOptions: Highcharts.Options = useMemo(() => {
     return {
       chart: {
@@ -1627,7 +1635,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Waarvan belasting (IB & Zvw)</span>
+                  <span>Waarvan belasting (IB & Zvw) €</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -1648,6 +1656,35 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(totalTaxNiels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Waarvan belasting (IB & Zvw) %</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{Math.round(averageTaxPercentage * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(totalTaxBartPercentage * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(totalTaxIanPercentage * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {Math.round(totalTaxNielsPercentage * 1000) / 10}%
+                  </span>
                 </div>
               </td>
             </tr>
