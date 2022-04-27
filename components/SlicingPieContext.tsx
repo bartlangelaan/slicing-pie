@@ -61,7 +61,7 @@ function useSlicingPieContextValue() {
   const [isRefreshingSlicingPie, setIsRefreshingSlicingPie] = useState<{
     [key in YearFilter]?: boolean;
   }>({
-    [periodFilter]: !hasDataFromCache,
+    [periodFilter]: false,
   });
   const [hiddenModeEnabled, setHiddenModeEnabled] = useState(
     typeof window !== 'undefined'
