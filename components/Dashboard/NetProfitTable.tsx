@@ -12,9 +12,6 @@ const config2021 = {
   filterHoursFromJuly: true,
   hourCriterium: 1225 - 24 * 26,
   minHoursPerWeek: (1225 - 24 * 26) / 26,
-  // Year costs / number of days * number of days from 01/09 - 31/12
-  // fiscalCarAdditionIan: (4649 / 365) * 120,
-  fiscalCarAdditionIan: 0,
   maxSelfEmployedDeduction: 6670,
   maxStartupDeduction: 2123,
   SSIDeductionValueBart: 0,
@@ -38,6 +35,9 @@ const config2022 = {
   hourCriterium: 1225,
   minHoursPerWeek: 1225 / 52,
   pieDistributionKey: 0.2,
+  SSIDeductionValueBart: 0,
+  SSIDeductionValueIan: 0,
+  SSIDeductionValueNiels: 0,
   lastYearPie: {
     bart: 0.0669,
     ian: 0.7853,
@@ -232,29 +232,27 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     props.totalProfit.costOfSales +
     (simulatedExtraProfit || 0);
 
-  const grossProfitBart = totalProfit * percentageBart || 0;
-  const grossProfitIan = totalProfit * percentageIan || 0;
-  const grossProfitNiels = totalProfit * percentageNiels || 0;
+  const grossProfitBeforePersonalCostsBart = totalProfit * percentageBart || 0;
+  const grossProfitBeforePersonalCostsIan = totalProfit * percentageIan || 0;
+  const grossProfitBeforePersonalCostsNiels =
+    totalProfit * percentageNiels || 0;
 
-  const grossTaxBart = grossProfitBart * config.taxPercentage;
-  const grossTaxIan =
-    (grossProfitIan + config.fiscalCarAdditionIan) * config.taxPercentage;
-  const grossTaxNiels = grossProfitNiels * config.taxPercentage;
-
-  const grossTax = grossTaxBart + grossTaxIan + grossTaxNiels;
+  const grossProfitBart = grossProfitBeforePersonalCostsBart - costsBart;
+  const grossProfitIan = grossProfitBeforePersonalCostsIan - costsIan;
+  const grossProfitNiels = grossProfitBeforePersonalCostsNiels - costsNiels;
 
   const selfEmployedDeductionBart = calculateSelfEmployedDeduction(
-    grossProfitBart - costsBart,
+    grossProfitBart,
     meetsHourCriteriumBart,
     config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionIan = calculateSelfEmployedDeduction(
-    grossProfitIan - costsIan + config.fiscalCarAdditionIan,
+    grossProfitIan,
     meetsHourCriteriumIan,
     config.maxSelfEmployedDeduction,
   );
   const selfEmployedDeductionNiels = calculateSelfEmployedDeduction(
-    grossProfitNiels - costsNiels,
+    grossProfitNiels,
     meetsHourCriteriumNiels,
     config.maxSelfEmployedDeduction,
   );
@@ -265,19 +263,19 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     selfEmployedDeductionNiels;
 
   const startupDeductionBart = calculateStartupDeduction(
-    grossProfitBart - costsBart,
+    grossProfitBart,
     meetsHourCriteriumBart,
     applyStartupDeductionBart,
     config.maxStartupDeduction,
   );
   const startupDeductionIan = calculateStartupDeduction(
-    grossProfitIan - costsIan + config.fiscalCarAdditionIan,
+    grossProfitIan,
     meetsHourCriteriumIan,
     applyStartupDeductionIan,
     config.maxStartupDeduction,
   );
   const startupDeductionNiels = calculateStartupDeduction(
-    grossProfitNiels - costsNiels,
+    grossProfitNiels,
     meetsHourCriteriumNiels,
     applyStartupDeductionNiels,
     config.maxStartupDeduction,
@@ -308,11 +306,11 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     entrepreneursDeductionNiels;
 
   const grossProfitAfterEntrepreneurDeductionBart =
-    grossProfitBart - costsBart - entrepreneursDeductionBart;
+    grossProfitBart - entrepreneursDeductionBart;
   const grossProfitAfterEntrepreneurDeductionIan =
-    grossProfitIan - costsIan - entrepreneursDeductionIan;
+    grossProfitIan - entrepreneursDeductionIan;
   const grossProfitAfterEntrepreneurDeductionNiels =
-    grossProfitNiels - costsNiels - entrepreneursDeductionNiels;
+    grossProfitNiels - entrepreneursDeductionNiels;
 
   const grossProfitAfterEntrepreneurDeduction =
     grossProfitAfterEntrepreneurDeductionBart +
@@ -320,33 +318,24 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitAfterEntrepreneurDeductionNiels;
 
   const profitExemptionBart =
-    (grossProfitBart - costsBart - entrepreneursDeductionBart) *
+    (grossProfitBart - entrepreneursDeductionBart) *
     config.profitExemptionPercentage;
   const profitExemptionIan =
-    (grossProfitIan -
-      costsIan -
-      entrepreneursDeductionIan +
-      config.fiscalCarAdditionIan) *
+    (grossProfitIan - entrepreneursDeductionIan) *
     config.profitExemptionPercentage;
   const profitExemptionNiels =
-    (grossProfitNiels - costsNiels - entrepreneursDeductionNiels) *
+    (grossProfitNiels - entrepreneursDeductionNiels) *
     config.profitExemptionPercentage;
 
   const profitExemption =
     profitExemptionBart + profitExemptionIan + profitExemptionNiels;
 
   const grossProfitAfterExemptionBart =
-    grossProfitBart -
-    costsBart -
-    entrepreneursDeductionBart -
-    profitExemptionBart;
+    grossProfitBart - entrepreneursDeductionBart - profitExemptionBart;
   const grossProfitAfterExemptionIan =
-    grossProfitIan - costsIan - entrepreneursDeductionIan - profitExemptionIan;
+    grossProfitIan - entrepreneursDeductionIan - profitExemptionIan;
   const grossProfitAfterExemptionNiels =
-    grossProfitNiels -
-    costsNiels -
-    entrepreneursDeductionNiels -
-    profitExemptionNiels;
+    grossProfitNiels - entrepreneursDeductionNiels - profitExemptionNiels;
 
   const grossProfitAfterExemption =
     grossProfitAfterExemptionBart +
@@ -354,10 +343,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     grossProfitAfterExemptionNiels;
 
   const netTaxBart = grossProfitAfterExemptionBart * config.taxPercentage;
-  // @todo exclude fiscal car addition and render as separate row
-  const netTaxIan =
-    (grossProfitAfterExemptionIan + config.fiscalCarAdditionIan) *
-    config.taxPercentage;
+  const netTaxIan = grossProfitAfterExemptionIan * config.taxPercentage;
   const netTaxNiels = grossProfitAfterExemptionNiels * config.taxPercentage;
 
   const netTax = netTaxBart + netTaxIan + netTaxNiels;
@@ -381,10 +367,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const contributionHIA =
     contributionHIABart + contributionHIAIan + contributionHIANiels;
 
-  const netProfitBart =
-    grossProfitBart - costsBart - netTaxBart - contributionHIABart;
-  const netProfitIan =
-    grossProfitIan - costsIan - netTaxIan - contributionHIAIan;
+  const netProfitBart = grossProfitBart - netTaxBart - contributionHIABart;
+  const netProfitIan = grossProfitIan - netTaxIan - contributionHIAIan;
   const netProfitNiels =
     grossProfitNiels - costsNiels - netTaxNiels - contributionHIANiels;
 
@@ -402,8 +386,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
   const totalWithDrawals = withDrawalsBart + withDrawalsIan + withDrawalsNiels;
 
-  const netLeftBart = grossProfitBart - costsBart - withDrawalsBart;
-  const netLeftIan = grossProfitIan - costsIan - withDrawalsIan;
+  const netLeftBart = grossProfitBart - withDrawalsBart;
+  const netLeftIan = grossProfitIan - withDrawalsIan;
   const netLeftNiels = grossProfitNiels - costsNiels - withDrawalsNiels;
 
   const netLeft = netLeftBart + netLeftIan + netLeftNiels;
@@ -453,7 +437,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
 
           const taxes = {
             Bart: {
-              grossTax: grossTaxBart,
               applyStartupDeduction: applyStartupDeductionBart,
               deduction: entrepreneursDeductionBart,
               netTax: netTaxBart,
@@ -461,7 +444,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               meetsHourCriterium: meetsHourCriteriumBart,
             },
             Ian: {
-              grossTax: grossTaxIan,
               applyStartupDeduction: applyStartupDeductionIan,
               deduction: entrepreneursDeductionIan,
               netTax: netTaxIan,
@@ -469,7 +451,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               meetsHourCriterium: meetsHourCriteriumIan,
             },
             Niels: {
-              grossTax: grossTaxNiels,
               applyStartupDeduction: applyStartupDeductionNiels,
               deduction: entrepreneursDeductionNiels,
               netTax: netTaxNiels,
@@ -495,9 +476,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 ? currencyFormatter.format(taxes[person].deduction || 0)
                 : 'N.v.t.'
             }<br/>
-            Bruto IB: ${currencyFormatter.format(
-              taxes[person].grossTax || 0,
-            )}<br/>
             Netto IB: ${currencyFormatter.format(
               taxes[person].netTax || 0,
             )}<br/>
@@ -563,9 +541,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
     entrepreneursDeductionBart,
     entrepreneursDeductionIan,
     entrepreneursDeductionNiels,
-    grossTaxBart,
-    grossTaxIan,
-    grossTaxNiels,
     meetsHourCriteriumBart,
     meetsHourCriteriumIan,
     meetsHourCriteriumNiels,
@@ -632,7 +607,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r italic">
                 <div>
-                  <span>Simuleer extra kosten</span>
+                  <span>Simuleer extra persoonlijke kosten</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r italic">
@@ -850,6 +825,77 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 </div>
               </td>
             </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Pas startersaftrek toe</span>
+                  <div className="text-xs italic">
+                    Wel of niet de startersaftrek toepassen? Mag 3 keer in de
+                    eerste 5 jaar.
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center border-r">
+                <input
+                  type="checkbox"
+                  className="form-checkbox rounded"
+                  checked={applyStartupDeductionAll}
+                  onChange={() => {
+                    setApplyDeductionAll((currentApplyDeductionAll) => {
+                      setApplyDeductionBart(!currentApplyDeductionAll);
+                      setApplyDeductionIan(!currentApplyDeductionAll);
+                      setApplyDeductionNiels(!currentApplyDeductionAll);
+
+                      return !currentApplyDeductionAll;
+                    });
+                  }}
+                />
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionBart}
+                    onChange={() => {
+                      setApplyDeductionBart(
+                        (currentApplyDeductionBart) =>
+                          !currentApplyDeductionBart,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionIan}
+                    onChange={() => {
+                      setApplyDeductionIan(
+                        (currentApplyDeductionIan) => !currentApplyDeductionIan,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+              <td className="py-3 px-6 text-center">
+                <div>
+                  <input
+                    type="checkbox"
+                    className="form-checkbox rounded"
+                    checked={applyStartupDeductionNiels}
+                    onChange={() => {
+                      setApplyDeductionNiels(
+                        (currentApplyDeductionNiels) =>
+                          !currentApplyDeductionNiels,
+                      );
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
             <tr className="h-10 border-b">
               <td className="border-r" />
               <td className="border-r" />
@@ -983,17 +1029,29 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(grossProfitBart)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitBeforePersonalCostsBart,
+                    )}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(grossProfitIan)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitBeforePersonalCostsIan,
+                    )}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(grossProfitNiels)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      grossProfitBeforePersonalCostsNiels,
+                    )}
+                  </span>
                 </div>
               </td>
             </tr>
@@ -1070,68 +1128,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="border-r" />
               <td colSpan={3} />
             </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100 mb-10">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">
-                    Bruto inkomstenbelasting ({config.taxPercentage * 100}%)
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">
-                    {currencyFormatter.format(grossTax)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(grossTaxBart)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(grossTaxIan)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(grossTaxNiels)}</span>
-                </div>
-              </td>
-            </tr>
-            {/* <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span>Waarvan fiscale bijtelling</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span>
-                    {currencyFormatter.format(config.fiscalCarAdditionIan)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(0)}</span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>
-                    {currencyFormatter.format(config.fiscalCarAdditionIan)}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-right">
-                <div>
-                  <span>{currencyFormatter.format(0)}</span>
-                </div>
-              </td>
-            </tr> */}
             <tr className="h-10 border-b">
               <td className="border-r" />
               <td className="border-r" />
@@ -1140,7 +1136,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span className="font-medium">Persoolijke kosten</span>
+                  <span className="font-medium">Persoonlijke kosten</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -1169,7 +1165,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Subtotaal bruto winst</span>
+                  <span>Subtotaal belastbare winst</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -1185,23 +1181,17 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitBart - costsBart)}
-                  </span>
+                  <span>{currencyFormatter.format(grossProfitBart)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitIan - costsIan)}
-                  </span>
+                  <span>{currencyFormatter.format(grossProfitIan)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>
-                    {currencyFormatter.format(grossProfitNiels - costsNiels)}
-                  </span>
+                  <span>{currencyFormatter.format(grossProfitNiels)}</span>
                 </div>
               </td>
             </tr>
@@ -1209,77 +1199,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="border-r" />
               <td className="border-r" />
               <td colSpan={3} />
-            </tr>
-            <tr className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-3 px-6 text-right border-r">
-                <div>
-                  <span className="font-medium">Pas startersaftrek toe</span>
-                  <div className="text-xs italic">
-                    Wel of niet de startersaftrek toepassen? Mag 3 keer in de
-                    eerste 5 jaar.
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center border-r">
-                <input
-                  type="checkbox"
-                  className="form-checkbox rounded"
-                  checked={applyStartupDeductionAll}
-                  onChange={() => {
-                    setApplyDeductionAll((currentApplyDeductionAll) => {
-                      setApplyDeductionBart(!currentApplyDeductionAll);
-                      setApplyDeductionIan(!currentApplyDeductionAll);
-                      setApplyDeductionNiels(!currentApplyDeductionAll);
-
-                      return !currentApplyDeductionAll;
-                    });
-                  }}
-                />
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyStartupDeductionBart}
-                    onChange={() => {
-                      setApplyDeductionBart(
-                        (currentApplyDeductionBart) =>
-                          !currentApplyDeductionBart,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyStartupDeductionIan}
-                    onChange={() => {
-                      setApplyDeductionIan(
-                        (currentApplyDeductionIan) => !currentApplyDeductionIan,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-6 text-center">
-                <div>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox rounded"
-                    checked={applyStartupDeductionNiels}
-                    onChange={() => {
-                      setApplyDeductionNiels(
-                        (currentApplyDeductionNiels) =>
-                          !currentApplyDeductionNiels,
-                      );
-                    }}
-                  />
-                </div>
-              </td>
             </tr>
             <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
@@ -1431,7 +1350,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Subtotaal bruto winst</span>
+                  <span>Subtotaal belastbare winst</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -1511,7 +1430,7 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Subtotaal bruto winst</span>
+                  <span>Subtotaal belastbare winst</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
