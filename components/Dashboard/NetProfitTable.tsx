@@ -1086,71 +1086,127 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="border-r" />
               <td colSpan={3} />
             </tr>
-            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span className="font-medium">Netto winst</span>
+                  <span className="font-medium">
+                    Belastbaar inkomen uit Popup
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">
-                    {currencyFormatter.format(pie.netProfit.total)}
+                    {currencyFormatter.format(
+                      pie.grossProfitAfterExemption.total,
+                    )}
                   </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netProfit.bart)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.grossProfitAfterExemption.bart,
+                    )}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netProfit.ian)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.grossProfitAfterExemption.ian,
+                    )}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netProfit.niels)}</span>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.grossProfitAfterExemption.niels,
+                    )}
+                  </span>
                 </div>
               </td>
             </tr>
-            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>
-                    Netto inkomstenbelasting ({config.taxPercentage * 100}%)
+                  <span className="font-medium">
+                    Netto inkomstenbelasting schijf 1
                   </span>
+                  <div className="text-xs italic">
+                    {config.taxPercentage1 * 100}% over alles tot{' '}
+                    {currencyFormatter.format(config.taxPercentage2From)}
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>{currencyFormatter.format(pie.netTax.total)}</span>
+                  <span>{currencyFormatter.format(pie.netTax1.total)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netTax.bart)}</span>
+                  <span>{currencyFormatter.format(pie.netTax1.bart)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netTax.ian)}</span>
+                  <span>{currencyFormatter.format(pie.netTax1.ian)}</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{currencyFormatter.format(pie.netTax.niels)}</span>
+                  <span>{currencyFormatter.format(pie.netTax1.niels)}</span>
                 </div>
               </td>
             </tr>
-            <tr className="border-b border-gray-200 text-xs italic bg-gray-50 hover:bg-gray-100">
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>
-                    Inkomensafhankelijke bijdrage Zvw en Wlz (5.75%, max.{' '}
-                    {currencyFormatter.format(3353)})
+                  <span className="font-medium">
+                    Netto inkomstenbelasting schijf 2
                   </span>
+                  <div className="text-xs italic">
+                    {config.taxPercentage2 * 100}% over alles boven de{' '}
+                    {currencyFormatter.format(config.taxPercentage2From)}
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>{currencyFormatter.format(pie.netTax2.total)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netTax2.bart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netTax2.ian)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netTax2.niels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    Inkomensafhankelijke bijdrage Zvw en Wlz
+                  </span>
+                  <div className="text-xs italic">
+                    {config.HIAPercentage * 100}%, max.{' '}
+                    {currencyFormatter.format(config.maxHIA)}
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -1182,6 +1238,165 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                 </div>
               </td>
             </tr>
+            <tr className="border-b border-gray-20 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Algemene heffingskorting</span>
+                  <div className="text-xs italic">
+                    {currencyFormatter.format(
+                      config.generalTaxCredit.maxGeneralTaxCredit,
+                    )}{' '}
+                    - ((inkomen -{' '}
+                    {currencyFormatter.format(
+                      config.generalTaxCredit.generalTaxCreditThreshold,
+                    )}
+                    ) *{' '}
+                    {Math.round(
+                      config.generalTaxCredit.generalTaxCreditPercentage *
+                        1000000,
+                    ) / 10000}
+                    %
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(pie.generalTaxCredit.total * -1)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.bart
+                      ? '-'
+                      : currencyFormatter.format(
+                          pie.generalTaxCredit.bart * -1,
+                        )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.ian
+                      ? '-'
+                      : currencyFormatter.format(pie.generalTaxCredit.ian * -1)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.niels
+                      ? '-'
+                      : currencyFormatter.format(
+                          pie.generalTaxCredit.niels * -1,
+                        )}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Arbeidskorting</span>
+                  <div className="text-xs italic">
+                    {currencyFormatter.format(
+                      config.labourTaxCredit.maxLabourTaxCredit,
+                    )}{' '}
+                    - ((inkomen -{' '}
+                    {currencyFormatter.format(
+                      config.labourTaxCredit.labourTaxCreditMinThreshold,
+                    )}
+                    ) *{' '}
+                    {Math.round(
+                      config.labourTaxCredit.labourTaxCreditPercentage * 100000,
+                    ) / 1000}
+                    %
+                  </div>
+                  <div className="text-xs italic">
+                    Bij belastbare inkomen hoger dan{' '}
+                    {currencyFormatter.format(
+                      config.labourTaxCredit.labourTaxCreditMaxThreshold,
+                    )}
+                    , is de arbeidskorting {currencyFormatter.format(0)}
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(pie.labourTaxCredit.total * -1)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.bart
+                      ? '-'
+                      : currencyFormatter.format(pie.labourTaxCredit.bart * -1)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.ian
+                      ? '-'
+                      : currencyFormatter.format(pie.labourTaxCredit.ian * -1)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {config.incomeFromEmployment.niels
+                      ? '-'
+                      : currencyFormatter.format(
+                          pie.labourTaxCredit.niels * -1,
+                        )}
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="h-10 border-b">
+              <td className="border-r" />
+              <td className="border-r" />
+              <td colSpan={3} />
+            </tr>
+            <tr className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">Netto winst uit Popup</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    {currencyFormatter.format(pie.netProfit.total)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netProfit.bart)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netProfit.ian)}</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{currencyFormatter.format(pie.netProfit.niels)}</span>
+                </div>
+              </td>
+            </tr>
+
             <tr className="h-10 border-b">
               <td className="border-r" />
               <td className="border-r" />

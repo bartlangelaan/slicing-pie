@@ -41,6 +41,36 @@ function calculateHIA(
   return HIA > maxHIA ? maxHIA : HIA;
 }
 
+function calculateGeneralTaxCredit(
+  income: number,
+  generalTaxCreditThreshold: number,
+  generalTaxCreditPercentage: number,
+  maxGeneralTaxCredit: number,
+) {
+  return Math.max(
+    0,
+    maxGeneralTaxCredit -
+      (income - generalTaxCreditThreshold) * generalTaxCreditPercentage,
+  );
+}
+
+function calculateLabourTaxCredit(
+  income: number,
+  labourTaxCreditMinThreshold: number,
+  labourTaxCreditMaxThreshold: number,
+  labourTaxCreditPercentage: number,
+  maxLabourTaxCredit: number,
+) {
+  if (income > labourTaxCreditMaxThreshold) {
+    return 0;
+  }
+
+  return (
+    maxLabourTaxCredit -
+    (income - labourTaxCreditMinThreshold) * labourTaxCreditPercentage
+  );
+}
+
 function useNetProfit(props: GetSlicingPieResponse) {
   const { periodFilter } = useSlicingPie();
 
@@ -418,10 +448,110 @@ function useNetProfit(props: GetSlicingPieResponse) {
     grossProfitAfterExemption.ian +
     grossProfitAfterExemption.niels;
 
+  const netTax1 = {
+    bart:
+      Math.min(grossProfitAfterExemption.bart, config.taxPercentage2From) *
+      config.taxPercentage1,
+    ian:
+      Math.min(grossProfitAfterExemption.ian, config.taxPercentage2From) *
+      config.taxPercentage1,
+    niels:
+      Math.min(grossProfitAfterExemption.niels, config.taxPercentage2From) *
+      config.taxPercentage1,
+    total: 0,
+  };
+
+  netTax1.total = netTax1.bart + netTax1.ian + netTax1.niels;
+
+  const netTax2 = {
+    bart: Math.max(
+      0,
+      (grossProfitAfterExemption.bart - config.taxPercentage2From) *
+        config.taxPercentage2,
+    ),
+    ian: Math.max(
+      0,
+      (grossProfitAfterExemption.ian - config.taxPercentage2From) *
+        config.taxPercentage2,
+    ),
+    niels: Math.max(
+      0,
+      (grossProfitAfterExemption.niels - config.taxPercentage2From) *
+        config.taxPercentage2,
+    ),
+    total: 0,
+  };
+
+  netTax2.total = netTax2.bart + netTax2.ian + netTax2.niels;
+
+  const generalTaxCredit = {
+    bart: config.incomeFromEmployment.bart
+      ? 0
+      : calculateGeneralTaxCredit(
+          grossProfitAfterExemption.bart,
+          config.generalTaxCredit.generalTaxCreditThreshold,
+          config.generalTaxCredit.generalTaxCreditPercentage,
+          config.generalTaxCredit.maxGeneralTaxCredit,
+        ),
+    ian: config.incomeFromEmployment.ian
+      ? 0
+      : calculateGeneralTaxCredit(
+          grossProfitAfterExemption.ian,
+          config.generalTaxCredit.generalTaxCreditThreshold,
+          config.generalTaxCredit.generalTaxCreditPercentage,
+          config.generalTaxCredit.maxGeneralTaxCredit,
+        ),
+    niels: config.incomeFromEmployment.niels
+      ? 0
+      : calculateGeneralTaxCredit(
+          grossProfitAfterExemption.niels,
+          config.generalTaxCredit.generalTaxCreditThreshold,
+          config.generalTaxCredit.generalTaxCreditPercentage,
+          config.generalTaxCredit.maxGeneralTaxCredit,
+        ),
+    total: 0,
+  };
+  generalTaxCredit.total =
+    generalTaxCredit.bart + generalTaxCredit.ian + generalTaxCredit.niels;
+
+  const labourTaxCredit = {
+    bart: config.incomeFromEmployment.bart
+      ? 0
+      : calculateLabourTaxCredit(
+          grossProfitAfterExemption.bart,
+          config.labourTaxCredit.labourTaxCreditMinThreshold,
+          config.labourTaxCredit.labourTaxCreditMaxThreshold,
+          config.labourTaxCredit.labourTaxCreditPercentage,
+          config.labourTaxCredit.maxLabourTaxCredit,
+        ),
+    ian: config.incomeFromEmployment.ian
+      ? 0
+      : calculateLabourTaxCredit(
+          grossProfitAfterExemption.ian,
+          config.labourTaxCredit.labourTaxCreditMinThreshold,
+          config.labourTaxCredit.labourTaxCreditMaxThreshold,
+          config.labourTaxCredit.labourTaxCreditPercentage,
+          config.labourTaxCredit.maxLabourTaxCredit,
+        ),
+    niels: config.incomeFromEmployment.niels
+      ? 0
+      : calculateLabourTaxCredit(
+          grossProfitAfterExemption.niels,
+          config.labourTaxCredit.labourTaxCreditMinThreshold,
+          config.labourTaxCredit.labourTaxCreditMaxThreshold,
+          config.labourTaxCredit.labourTaxCreditPercentage,
+          config.labourTaxCredit.maxLabourTaxCredit,
+        ),
+    total: 0,
+  };
+
+  labourTaxCredit.total =
+    labourTaxCredit.bart + labourTaxCredit.ian + labourTaxCredit.niels;
+
   const netTax = {
-    bart: grossProfitAfterExemption.bart * config.taxPercentage,
-    ian: grossProfitAfterExemption.ian * config.taxPercentage,
-    niels: grossProfitAfterExemption.niels * config.taxPercentage,
+    bart: netTax1.bart + netTax2.bart,
+    ian: netTax1.ian + netTax2.ian,
+    niels: netTax1.niels + netTax2.niels,
     total: 0,
   };
 
@@ -538,6 +668,10 @@ function useNetProfit(props: GetSlicingPieResponse) {
     grossProfitAfterEntrepreneurDeduction,
     profitExemption,
     grossProfitAfterExemption,
+    netTax1,
+    netTax2,
+    generalTaxCredit,
+    labourTaxCredit,
     netTax,
     contributionHIA,
     netProfit,

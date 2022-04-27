@@ -1,7 +1,20 @@
 const config2021 = {
-  taxPercentage: 0.371,
+  taxPercentage1: 0.371,
+  taxPercentage2: 0.495,
+  taxPercentage2From: 68508,
   HIAPercentage: 0.0575,
   maxHIA: 3353,
+  generalTaxCredit: {
+    generalTaxCreditThreshold: 21044,
+    generalTaxCreditPercentage: 0.05977,
+    maxGeneralTaxCredit: 2837,
+  },
+  labourTaxCredit: {
+    labourTaxCreditMinThreshold: 35652,
+    labourTaxCreditMaxThreshold: 105737,
+    labourTaxCreditPercentage: 0.06,
+    maxLabourTaxCredit: 4205,
+  },
   filterHoursFromJuly: true,
   hourCriterium: 1225 - 24 * 26,
   minHoursPerWeek: (1225 - 24 * 26) / 26,
@@ -32,10 +45,31 @@ const config2021 = {
     ian: true,
     niels: false,
   },
+  incomeFromEmployment: {
+    bart: true,
+    ian: true,
+    niels: true,
+  },
 };
 
 const config2022 = {
   ...config2021,
+  taxPercentage1: 0.3707,
+  taxPercentage2: 0.495,
+  taxPercentage2From: 69399,
+  generalTaxCredit: {
+    generalTaxCreditThreshold: 21318,
+    generalTaxCreditPercentage: 0.06007,
+    maxGeneralTaxCredit: 2888,
+  },
+  labourTaxCredit: {
+    labourTaxCreditMinThreshold: 36650,
+    labourTaxCreditMaxThreshold: 109347,
+    labourTaxCreditPercentage: 0.0586,
+    maxLabourTaxCredit: 4260,
+  },
+  HIAPercentage: 0.055,
+  maxHIA: 3284,
   filterHoursFromJuly: false,
   hourCriterium: 1225,
   minHoursPerWeek: 1225 / 52,
@@ -59,6 +93,11 @@ const config2022 = {
     bart: false,
     ian: true,
     niels: false,
+  },
+  incomeFromEmployment: {
+    bart: true,
+    ian: false,
+    niels: true,
   },
 };
 
