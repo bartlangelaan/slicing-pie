@@ -126,8 +126,6 @@ function useSlicingPieContextValue() {
       };
     }
 
-    console.log(hasDataFromCache, periodFilter);
-
     fetchData();
 
     return () => {
