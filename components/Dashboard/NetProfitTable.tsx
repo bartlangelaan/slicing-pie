@@ -26,6 +26,12 @@ const config2021 = {
   maxSSIDeduction: 59170,
   SSIDectionPercentage: 0.28,
   profitExemptionPercentage: 0.14,
+  pieDistributionKey: 0,
+  lastYearPie: {
+    bart: 0,
+    ian: 0,
+    niels: 0,
+  },
 };
 
 const config2022 = {
@@ -34,6 +40,12 @@ const config2022 = {
   hourCriteriumUnfitForWork: 800,
   minHoursPerWeek: 1225 / 52,
   minHoursPerWeekUnfitForWork: 800 / 52,
+  pieDistributionKey: 0.2,
+  lastYearPie: {
+    bart: 0.0669,
+    ian: 0.7853,
+    niels: 0.1478,
+  },
 };
 
 const currencyFormatter = Intl.NumberFormat('nl', {
@@ -130,9 +142,6 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const filteredHoursNiels =
     props.timeSpent.niels.yearFiltered + (simulatedExtraHoursNiels || 0);
 
-  const filteredHours =
-    filteredHoursBart + filteredHoursIan + filteredHoursNiels;
-
   const allHhoursBart =
     props.timeSpent.bart[filterHoursFromJuly ? 'fromJuly' : 'year'] +
     (simulatedExtraHoursBart || 0);
@@ -147,9 +156,30 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
   const hoursPerWeekIan = allHhoursIan / numberOfPastWeeks;
   const hoursPerWeekNiels = allHhoursNiels / numberOfPastWeeks;
 
-  const percentageBart = filteredHoursBart / totalTimeSpentFiltered;
-  const percentageIan = filteredHoursIan / totalTimeSpentFiltered;
-  const percentageNiels = filteredHoursNiels / totalTimeSpentFiltered;
+  const percentageBartThisYear = filteredHoursBart / totalTimeSpentFiltered;
+  const percentageIanThisYear = filteredHoursIan / totalTimeSpentFiltered;
+  const percentageNielsThisYear = filteredHoursNiels / totalTimeSpentFiltered;
+
+  const distributedPercentageBartThisYear =
+    percentageBartThisYear * (1 - config.pieDistributionKey);
+  const distributedPercentageIanThisYear =
+    percentageIanThisYear * (1 - config.pieDistributionKey);
+  const distributedPercentageNielsThisYear =
+    percentageNielsThisYear * (1 - config.pieDistributionKey);
+
+  const distributedPercentageBartLastYear =
+    config.lastYearPie.bart * config.pieDistributionKey;
+  const distributedPercentageIanLastYear =
+    config.lastYearPie.ian * config.pieDistributionKey;
+  const distributedPercentageNielsLastYear =
+    config.lastYearPie.niels * config.pieDistributionKey;
+
+  const percentageBart =
+    distributedPercentageBartThisYear + distributedPercentageBartLastYear;
+  const percentageIan =
+    distributedPercentageIanThisYear + distributedPercentageIanLastYear;
+  const percentageNiels =
+    distributedPercentageNielsThisYear + distributedPercentageNielsLastYear;
 
   const costsBart =
     props.personalCosts.bart.plus -
@@ -931,6 +961,11 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right border-r">
                 <div>
                   <span className="font-medium">Slicing pie</span>
+                  <div className="text-xs italic">
+                    Som na toepassen verdeelsleutel tussen dit jaar (
+                    {100 - config.pieDistributionKey * 100}%) en vorig jaar (
+                    {config.pieDistributionKey * 100}%)
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
@@ -957,27 +992,76 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
             <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>Uren</span>
+                  <span>Slicing pie dit jaar</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right border-r">
                 <div>
-                  <span>{Math.round(filteredHours)}</span>
+                  <span>
+                    {Math.round(
+                      (percentageBartThisYear +
+                        percentageIanThisYear +
+                        percentageNielsThisYear) *
+                        100,
+                    )}
+                    %
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(filteredHoursBart)}</span>
+                  <span>{Math.round(percentageBartThisYear * 1000) / 10}%</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(filteredHoursIan)}</span>
+                  <span>{Math.round(percentageIanThisYear * 1000) / 10}%</span>
                 </div>
               </td>
               <td className="py-3 px-6 text-right">
                 <div>
-                  <span>{Math.round(filteredHoursNiels)}</span>
+                  <span>
+                    {Math.round(percentageNielsThisYear * 1000) / 10}%
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 text-xs italic hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>Slicing pie vorig jaar</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {Math.round(
+                      (config.lastYearPie.bart +
+                        config.lastYearPie.ian +
+                        config.lastYearPie.niels) *
+                        100,
+                    )}
+                    %
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {Math.round(config.lastYearPie.bart * 1000) / 10}%
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>{Math.round(config.lastYearPie.ian * 1000) / 10}%</span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {Math.round(config.lastYearPie.niels * 1000) / 10}%
+                  </span>
                 </div>
               </td>
             </tr>
