@@ -56,6 +56,8 @@ const config2022 = {
   ...config2021,
   taxPercentage1: 0.3707,
   taxPercentage2: 0.495,
+  maxSelfEmployedDeduction: 6310,
+  maxStartupDeduction: 2123,
   taxPercentage2From: 69399,
   generalTaxCredit: {
     generalTaxCreditThreshold: 21318,
