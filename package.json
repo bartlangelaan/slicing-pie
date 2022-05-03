@@ -6,7 +6,7 @@
     ".next/cache"
   ],
   "scripts": {
-    "dev": "next",
+    "dev": "NODE_OPTIONS='--inspect' next",
     "build": "next build",
     "start": "next start -p $PORT",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
