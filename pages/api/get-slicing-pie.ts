@@ -446,7 +446,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           (subTotal, entry) => {
             const person = findPerson(entry.ledger_account_id);
 
-            if (!person) return subTotal;
+            if (
+              !person ||
+              // If an item's ledger account id should be skipped.
+              // This is the case for categories on the accounting balance (e.g. investments).
+              categoriesToSkipAsCosts.includes(entry.ledger_account_id) ||
+              costOfSalesLedgerAccountIds.includes(entry.ledger_account_id)
+            )
+              return subTotal;
 
             const price = parseFloat(entry.debit);
 
