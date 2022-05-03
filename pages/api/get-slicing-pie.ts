@@ -280,7 +280,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         }[];
         payments: { ledger_account_id: string; price: string }[];
       }[]
-    >('/documents/receipts.json');
+    >(`/documents/receipts.json?filter=period:${periodFilter}`);
 
     const timeEntriesRequest = requestAll<
       {
@@ -446,14 +446,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           (subTotal, entry) => {
             const person = findPerson(entry.ledger_account_id);
 
-            if (
-              !person ||
-              // If an item's ledger account id should be skipped.
-              // This is the case for categories on the accounting balance (e.g. investments).
-              categoriesToSkipAsCosts.includes(entry.ledger_account_id) ||
-              costOfSalesLedgerAccountIds.includes(entry.ledger_account_id)
-            )
-              return subTotal;
+            if (!person) return subTotal;
 
             const price = parseFloat(entry.debit);
 
@@ -496,93 +489,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       },
       getInitialObject(),
     );
-
-    const personalFinancialMutationsIncludingGeneralJournalDocuments =
-      generalJournalDocumentsResponse.reduce((total, item) => {
-        return item.general_journal_document_entries.reduce(
-          (subTotal, entry) => {
-            const person = findPerson(entry.ledger_account_id);
-
-            if (!person) return subTotal;
-
-            if (
-              entry.ledger_account_id !==
-                ledgerAccountsIds[person].withdrawal &&
-              entry.ledger_account_id !== ledgerAccountsIds[person].deposit
-            )
-              return subTotal;
-
-            const price = parseFloat(entry.debit);
-
-            return {
-              ...subTotal,
-              [person]: {
-                plus: subTotal[person].plus + (price < 0 ? price : 0),
-                min: subTotal[person].min + (price > 0 ? price : 0),
-              },
-            };
-          },
-          total,
-        );
-      }, personalFinancialMutations);
-
-    const personalFinancialMutationsIncludingGeneralJournalDocumentsDepositPaymentsWithdrawalPayments =
-      purchaseInvoicesResponse.reduce(
-        (total, item) =>
-          item.payments.reduce((subTotal, payment) => {
-            const person = findPerson(payment.ledger_account_id);
-
-            if (!person) return subTotal;
-
-            if (
-              payment.ledger_account_id !==
-                ledgerAccountsIds[person].withdrawal &&
-              payment.ledger_account_id !== ledgerAccountsIds[person].deposit
-            )
-              return subTotal;
-
-            const price = parseFloat(payment.price_base || payment.price);
-
-            return {
-              ...subTotal,
-              [person]: {
-                plus: subTotal[person].plus + (price > 0 ? price : 0),
-                min: subTotal[person].min - (price < 0 ? price : 0),
-              },
-            };
-          }, total),
-        personalFinancialMutationsIncludingGeneralJournalDocuments,
-      );
-
-    const personalFinancialMutationsIncludingGeneralJournalDocumentsDepositPaymentsWithdrawalPaymentsDepositLedgersWithdrawalLedgers =
-      purchaseInvoicesResponse.reduce(
-        (total, item) =>
-          item.details.reduce((subTotal, detail) => {
-            const person = findPerson(detail.ledger_account_id);
-
-            if (!person) return subTotal;
-
-            if (
-              detail.ledger_account_id !==
-                ledgerAccountsIds[person].withdrawal &&
-              detail.ledger_account_id !== ledgerAccountsIds[person].deposit
-            )
-              return subTotal;
-
-            const price = parseFloat(
-              detail.total_price_excl_tax_with_discount || detail.price,
-            );
-
-            return {
-              ...subTotal,
-              [person]: {
-                plus: subTotal[person].plus + (price < 0 ? price : 0),
-                min: subTotal[person].min + (price > 0 ? price : 0),
-              },
-            };
-          }, total),
-        personalFinancialMutationsIncludingGeneralJournalDocumentsDepositPaymentsWithdrawalPayments,
-      );
 
     const personalPurchaseInvoices = purchaseInvoicesResponse.reduce(
       (total, item) => {
@@ -809,8 +715,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       totalProfit,
       personalGeneralJournalDocuments,
       personalCosts,
-      personalFinancialMutations:
-        personalFinancialMutationsIncludingGeneralJournalDocumentsDepositPaymentsWithdrawalPaymentsDepositLedgersWithdrawalLedgers,
+      personalFinancialMutations,
       personalPurchaseInvoices,
       personalReceipts,
       timeSpent,
