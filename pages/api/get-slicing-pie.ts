@@ -43,9 +43,13 @@ axios.defaults.headers = {
 // @todo skip projecten voor slicing pie obv naam ipv hardcoded - DONE
 // @todo uren tabel extra regel voor totaal met slicing pie: ja - DONE
 // @todo fixen null-waarde input velden - DONE
+// @todo afschrijvingen: https://developer.moneybird.com/api/documents_general_journal_documents/ - DONE
+// @todo 80% van bepaalde categorieën pakken
+// @todo tariefsaanpassingen toptarief
+// - Bij 75k omgezet, heb je 17.752 ondernemersaftrek. Je hebt dan 5.601 in schijf 2, die is dan het laagst, dus dan wordt het 9,5% van 5.601 = 532,10
+// - Bij 100k omzet, heb je 21.252 ondernemersaftrek. Je hebt dan 30.601 in schijf 2. Dan is je aftrek het laagst, dus dan wordt het 9,5% van 21.252 = 2.018,94
 // @todo projecten gedeeltelijk mee laten tellen ([20%] en [20])
 // @todo slicing pie project ook gedeeltelijk mee laten tellen
-// @todo afschrijvingen: https://developer.moneybird.com/api/documents_general_journal_documents/
 // @todo verbeter performance met in serie geschakelde financial mutations
 // @todo tooltips met "hoe berekend"
 // @todo belastingschijven
@@ -78,34 +82,52 @@ export const api = setup({
   },
 });
 
-const categoriesToSkipAsCosts = [
-  '336003494874973243',
-  '339448075967792536',
-  '341893344854541993',
-];
-
+// Inkoop diensten
 const costOfSalesLedgerAccountIds = ['318138549261043069'];
 
 const ledgerAccountsIds = {
   bart: {
     withdrawal: '314080108962908154',
     deposit: '314080108885313527',
-    costs: ['325419662362806156'],
+    costs: [
+      '325419662362806156', // Uitgaven Bart Langelaan
+    ],
     user: '314636212260308719',
   },
   ian: {
     withdrawal: '314079948882052598',
     deposit: '314079948801312243',
-    costs: ['325319664846505435', '336003494959907902', '339448076044338586'],
+    costs: [
+      '325319664846505435', // Uitgaven Ian Wensink
+      '336003494959907902', // Afschrijving MBP Ian 2021
+      '339448076044338586', // Afschrijving Samsung scherm Ian 2021
+    ],
     user: '313176631829071688',
   },
   niels: {
     withdrawal: '314080117682865253',
     deposit: '314080117647213666',
-    costs: ['325419671342811059', '341893346471446200'],
+    costs: [
+      '325419671342811059', // Uitgaven Niels Otten
+      '341893346471446200', // Afschrijving iPhone Niels 2021
+    ],
     user: '314352839788856769',
   },
 };
+
+const categoriesToSkipAsCosts = [
+  '336003494874973243', // Aanschaf MBP Ian 2021
+  '339448075967792536', // Aanschaf Samsung scherm Ian 2021
+  '341893344854541993', // Aanschaf iPhone Niels 2021
+  ledgerAccountsIds.bart.withdrawal,
+  ledgerAccountsIds.ian.withdrawal,
+  ledgerAccountsIds.niels.withdrawal,
+];
+
+const categoriesToApply8020To = [
+  '314086550406170048', // Eten en drinken met relaties
+  '314086550309701054', // Relatiegeschenken
+];
 
 function getInitialObject() {
   return {
@@ -369,11 +391,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           return subTotal;
 
         let price = parseFloat(
-          detail.total_price_excl_tax_with_discount || detail.price,
+          detail.total_price_excl_tax_with_discount_base || detail.price,
         );
 
-        if (item.currency === 'USD') {
-          price *= parseFloat(item.exchange_rate || '1');
+        if (categoriesToApply8020To.includes(detail.ledger_account_id)) {
+          price *= 0.8;
         }
 
         return subTotal + price;
