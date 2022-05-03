@@ -1138,8 +1138,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     Netto inkomstenbelasting schijf 1
                   </span>
                   <div className="text-xs italic">
-                    {config.taxPercentage1 * 100}% over alles tot{' '}
-                    {currencyFormatter.format(config.taxPercentage2From)}
+                    {config.taxPercentageBracket1 * 100}% over alles tot{' '}
+                    {currencyFormatter.format(config.taxPercentageBracket2From)}
                   </div>
                 </div>
               </td>
@@ -1171,8 +1171,8 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
                     Netto inkomstenbelasting schijf 2
                   </span>
                   <div className="text-xs italic">
-                    {config.taxPercentage2 * 100}% over alles boven de{' '}
-                    {currencyFormatter.format(config.taxPercentage2From)}
+                    {config.taxPercentageBracket2 * 100}% over alles boven de{' '}
+                    {currencyFormatter.format(config.taxPercentageBracket2From)}
                   </div>
                 </div>
               </td>
@@ -1194,6 +1194,61 @@ export function NetProfitTable(props: GetSlicingPieResponse) {
               <td className="py-3 px-6 text-right">
                 <div>
                   <span>{currencyFormatter.format(pie.netTax2.niels)}</span>
+                </div>
+              </td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span className="font-medium">
+                    Minimale tariefsaanpassing aftrekposten
+                  </span>
+                  <div className="text-xs italic">
+                    {config.taxRateAdjustmentBracket2 * 100}% over alles boven
+                    de{' '}
+                    {currencyFormatter.format(config.taxPercentageBracket2From)}{' '}
+                    of over de totale ondernemersaftrek, welke van de 2 het
+                    laagst is.
+                  </div>
+                  <div className="text-xs italic">
+                    <strong>Let op:</strong> deze aanpassing wordt vermeerderd
+                    met eventuele persoonlijke aftrekposten, zoals de
+                    hypotheekrenteaftrek.
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right border-r">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.netTaxAdjustmentBracket2.total,
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.netTaxAdjustmentBracket2.bart,
+                    )}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(pie.netTaxAdjustmentBracket2.ian)}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-6 text-right">
+                <div>
+                  <span>
+                    {currencyFormatter.format(
+                      pie.netTaxAdjustmentBracket2.niels,
+                    )}
+                  </span>
                 </div>
               </td>
             </tr>

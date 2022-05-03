@@ -450,14 +450,20 @@ function useNetProfit(props: GetSlicingPieResponse) {
 
   const netTax1 = {
     bart:
-      Math.min(grossProfitAfterExemption.bart, config.taxPercentage2From) *
-      config.taxPercentage1,
+      Math.min(
+        grossProfitAfterExemption.bart,
+        config.taxPercentageBracket2From,
+      ) * config.taxPercentageBracket1,
     ian:
-      Math.min(grossProfitAfterExemption.ian, config.taxPercentage2From) *
-      config.taxPercentage1,
+      Math.min(
+        grossProfitAfterExemption.ian,
+        config.taxPercentageBracket2From,
+      ) * config.taxPercentageBracket1,
     niels:
-      Math.min(grossProfitAfterExemption.niels, config.taxPercentage2From) *
-      config.taxPercentage1,
+      Math.min(
+        grossProfitAfterExemption.niels,
+        config.taxPercentageBracket2From,
+      ) * config.taxPercentageBracket1,
     total: 0,
   };
 
@@ -466,23 +472,53 @@ function useNetProfit(props: GetSlicingPieResponse) {
   const netTax2 = {
     bart: Math.max(
       0,
-      (grossProfitAfterExemption.bart - config.taxPercentage2From) *
-        config.taxPercentage2,
+      (grossProfitAfterExemption.bart - config.taxPercentageBracket2From) *
+        config.taxPercentageBracket2,
     ),
     ian: Math.max(
       0,
-      (grossProfitAfterExemption.ian - config.taxPercentage2From) *
-        config.taxPercentage2,
+      (grossProfitAfterExemption.ian - config.taxPercentageBracket2From) *
+        config.taxPercentageBracket2,
     ),
     niels: Math.max(
       0,
-      (grossProfitAfterExemption.niels - config.taxPercentage2From) *
-        config.taxPercentage2,
+      (grossProfitAfterExemption.niels - config.taxPercentageBracket2From) *
+        config.taxPercentageBracket2,
     ),
     total: 0,
   };
 
   netTax2.total = netTax2.bart + netTax2.ian + netTax2.niels;
+
+  const netTaxAdjustmentBracket2 = {
+    bart:
+      grossProfit.bart > config.taxPercentageBracket2From
+        ? Math.min(
+            grossProfit.bart - config.taxPercentageBracket2From,
+            entrepreneursDeduction.bart + profitExemption.bart,
+          ) * config.taxRateAdjustmentBracket2
+        : 0,
+    ian:
+      grossProfit.ian > config.taxPercentageBracket2From
+        ? Math.min(
+            grossProfit.ian - config.taxPercentageBracket2From,
+            entrepreneursDeduction.ian + profitExemption.ian,
+          ) * config.taxRateAdjustmentBracket2
+        : 0,
+    niels:
+      grossProfit.niels > config.taxPercentageBracket2From
+        ? Math.min(
+            grossProfit.niels - config.taxPercentageBracket2From,
+            entrepreneursDeduction.niels + profitExemption.niels,
+          ) * config.taxRateAdjustmentBracket2
+        : 0,
+    total: 0,
+  };
+
+  netTaxAdjustmentBracket2.total =
+    netTaxAdjustmentBracket2.bart +
+    netTaxAdjustmentBracket2.ian +
+    netTaxAdjustmentBracket2.niels;
 
   const generalTaxCredit = {
     bart: config.incomeFromEmployment.bart
@@ -549,9 +585,9 @@ function useNetProfit(props: GetSlicingPieResponse) {
     labourTaxCredit.bart + labourTaxCredit.ian + labourTaxCredit.niels;
 
   const netTax = {
-    bart: netTax1.bart + netTax2.bart,
-    ian: netTax1.ian + netTax2.ian,
-    niels: netTax1.niels + netTax2.niels,
+    bart: netTax1.bart + netTax2.bart + netTaxAdjustmentBracket2.bart,
+    ian: netTax1.ian + netTax2.ian + netTaxAdjustmentBracket2.ian,
+    niels: netTax1.niels + netTax2.niels + netTaxAdjustmentBracket2.niels,
     total: 0,
   };
 
@@ -670,6 +706,7 @@ function useNetProfit(props: GetSlicingPieResponse) {
     grossProfitAfterExemption,
     netTax1,
     netTax2,
+    netTaxAdjustmentBracket2,
     generalTaxCredit,
     labourTaxCredit,
     netTax,

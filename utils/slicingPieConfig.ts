@@ -1,7 +1,8 @@
 const config2021 = {
-  taxPercentage1: 0.371,
-  taxPercentage2: 0.495,
-  taxPercentage2From: 68508,
+  taxPercentageBracket1: 0.371,
+  taxPercentageBracket2: 0.495,
+  taxPercentageBracket2From: 68508,
+  taxRateAdjustmentBracket2: 0.063,
   HIAPercentage: 0.0575,
   maxHIA: 3353,
   generalTaxCredit: {
@@ -54,11 +55,12 @@ const config2021 = {
 
 const config2022 = {
   ...config2021,
-  taxPercentage1: 0.3707,
-  taxPercentage2: 0.495,
+  taxPercentageBracket1: 0.3707,
+  taxPercentageBracket2: 0.495,
+  taxRateAdjustmentBracket2: 0.095,
   maxSelfEmployedDeduction: 6310,
   maxStartupDeduction: 2123,
-  taxPercentage2From: 69399,
+  taxPercentageBracket2From: 69399,
   generalTaxCredit: {
     generalTaxCreditThreshold: 21318,
     generalTaxCreditPercentage: 0.06007,
