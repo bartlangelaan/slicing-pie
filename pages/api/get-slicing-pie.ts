@@ -150,6 +150,14 @@ function findPerson(id: string) {
   }) as Person | undefined;
 }
 
+function isPersonalCost(id: string) {
+  return Object.keys(ledgerAccountsIds).find((name) => {
+    const personIds = ledgerAccountsIds[name as Person];
+
+    return personIds.costs.includes(id);
+  }) as Person | undefined;
+}
+
 async function request<T>(
   url: string,
   page: number,
@@ -655,7 +663,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     const personalCosts = purchaseInvoicesResponse.reduce((total, item) => {
       return item.details.reduce((subTotal, detail) => {
-        const person = findPerson(detail.ledger_account_id);
+        const person = isPersonalCost(detail.ledger_account_id);
 
         if (!person) return subTotal;
 
