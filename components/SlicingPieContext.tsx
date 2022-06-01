@@ -1,13 +1,5 @@
 import axios from 'axios';
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   GetSlicingPieResponse,
   GetSlicingPieErrorResponse,
@@ -17,7 +9,7 @@ type YearFilter = 2021 | 2022;
 
 type CacheData = { [key in YearFilter]?: GetSlicingPieResponse } | null;
 
-function useSlicingPieContextValue() {
+export function useSlicingPie() {
   const [periodFilter, setPeriodFilter] = useState<YearFilter>(2022);
 
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
@@ -174,28 +166,3 @@ function useSlicingPieContextValue() {
     setRetryAfter,
   };
 }
-
-const SlicingPieContext = createContext<
-  ReturnType<typeof useSlicingPieContextValue> | undefined
->(undefined);
-
-interface Props {
-  children: ReactNode;
-}
-
-export function SlicingPieProvider({ children }: Props) {
-  const value = useSlicingPieContextValue();
-  return (
-    <SlicingPieContext.Provider value={value}>
-      {children}
-    </SlicingPieContext.Provider>
-  );
-}
-
-export const useSlicingPie = () => {
-  const context = useContext(SlicingPieContext);
-  if (context === undefined) {
-    throw new Error('useSlicingPie must be used within a SlicingPieProvider');
-  }
-  return context;
-};

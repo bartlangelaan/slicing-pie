@@ -8,6 +8,9 @@ import { Loader } from '../components/Loader';
 import { Header } from '../components/Header';
 import { useSlicingPie } from '../components/SlicingPieContext';
 
+import 'tailwindcss/tailwind.css';
+import '../styles/globals.css';
+
 const DynamicDashboard = dynamic(
   () =>
     import('../components/Dashboard/Component').then(
