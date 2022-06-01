@@ -312,19 +312,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }[]
     >(`/documents/receipts.json?filter=period:${periodFilter}`);
 
-    const timeEntriesRequest = requestAll<
-      {
-        started_at: string;
-        ended_at: string;
-        paused_duration: number;
-        billable: boolean;
-        user: { id: string };
-        project?: { id: string; name: string };
-      }[]
-    >(
-      `/time_entries.json?filter=period:${
-        new Date().getFullYear() === 2021 ? '20201101..20211231' : periodFilter
-      }`,
+    const timeEntriesRequest = getAllHours(
+      new Date().getFullYear() === 2021 ? '20201101..20211231' : periodFilter,
     );
 
     const salesInvoicesRequest = requestAll<
