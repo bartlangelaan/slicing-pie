@@ -5,6 +5,7 @@ import redis from 'redis';
 import { basicAuthCheck } from '../../utils/access';
 import { hiddenDataMock } from '../../utils/hiddenDataMock';
 import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
+// eslint-disable-next-line import/no-cycle
 import { getAllHours } from './get-hours';
 
 function isAxiosError(error: any): error is AxiosError {
