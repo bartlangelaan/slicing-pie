@@ -315,7 +315,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     >(`/documents/receipts.json?filter=period:${periodFilter}`);
 
     const timeEntriesRequest = getAllHours(
-      new Date().getFullYear() === 2021 ? '20201101..20211231' : periodFilter,
+      req.query.periodFilter === '2021' ? '20201101..20211231' : periodFilter,
     );
 
     const salesInvoicesRequest = requestAll<
