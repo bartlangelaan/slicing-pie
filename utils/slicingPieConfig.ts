@@ -84,9 +84,9 @@ const config2022 = {
     niels: 0,
   },
   lastYearPie: {
-    bart: 0.0669,
-    ian: 0.7853,
-    niels: 0.1478,
+    bart: 0.0876,
+    ian: 0.7603,
+    niels: 0.153,
   },
   applyStartupDeduction: {
     bart: false,
