@@ -104,7 +104,8 @@ export default function HoursPage(
               field: 'day',
               headerName: 'Day',
               width: 150,
-              valueFormatter: (props) => format(props.value, 'eee yyyy-MM-dd'),
+              valueFormatter: (params) =>
+                format(params.value, 'eee yyyy-MM-dd'),
             },
             { field: 'bart', headerName: 'Bart', valueFormatter },
             { field: 'ian', headerName: 'Ian', valueFormatter },
@@ -150,8 +151,8 @@ export default function HoursPage(
               )
               ?.focus();
           }}
-          getRowHeight={(props) =>
-            isWeekend(props.model.day) || isAfter(props.model.day, new Date())
+          getRowHeight={(params) =>
+            isWeekend(params.model.day) || isAfter(params.model.day, new Date())
               ? 26
               : 52
           }

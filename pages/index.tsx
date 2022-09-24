@@ -4,10 +4,10 @@ import { NextPageContext } from 'next';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
+import { Layout } from 'components/Layout';
 import { Loader } from '../components/Loader';
 import { Header } from '../components/Header';
 import { useSlicingPie } from '../components/SlicingPieContext';
-import { Layout } from 'components/Layout';
 
 const DynamicDashboard = dynamic(
   () =>

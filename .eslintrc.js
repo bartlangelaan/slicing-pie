@@ -35,6 +35,7 @@ module.exports = {
       2,
       { namedComponents: 'function-declaration' },
     ],
+    '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
   },
   env: {
     node: true,

@@ -36,6 +36,6 @@ export function getAllHours(period: string) {
   return requestAll<TimeEntry[]>(`/time_entries.json?filter=period:${period}`);
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+export default async (_: NextApiRequest, res: NextApiResponse) => {
   res.json({});
 };

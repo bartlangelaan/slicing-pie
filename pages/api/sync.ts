@@ -1,10 +1,11 @@
+/* eslint-disable no-await-in-loop */
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { mongo } from 'utils/mongo';
-import { basicAuthCheck } from '../../utils/access';
 import parseLinkHeader from 'parse-link-header';
 import { unserialize } from 'utils/serialize';
 import { quarters } from 'utils/quarters';
+import { basicAuthCheck } from '../../utils/access';
 
 const moneybird = axios.create({
   baseURL: 'https://moneybird.com/api/v2/313185156605150255',
@@ -31,7 +32,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       status: 'ok',
     });
   } catch (err: any) {
-    console.error(err);
     res.json({ status: 'error', error: err.message });
   } finally {
     await mongo.close();
@@ -41,7 +41,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 async function sync(syncVersion: number, type: string) {
   let next = `/${type}.json`;
   while (next) {
-    console.log(syncVersion, next);
     const res = await moneybird.get<object[]>(next);
     await mongo.connect();
     await mongo
