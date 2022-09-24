@@ -1,6 +1,15 @@
-import { AppBar, Box, Tab, Tabs, Toolbar, Typography } from '@mui/material';
+import {
+  AppBar,
+  Box,
+  IconButton,
+  Tab,
+  Tabs,
+  Toolbar,
+  Typography,
+} from '@mui/material';
 import { useRouter } from 'next/router';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 interface Props {
   children: ReactNode;
@@ -13,6 +22,7 @@ const pages = {
 
 export function Layout(props: Props) {
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
   return (
     <>
       <AppBar position="fixed">
@@ -32,6 +42,18 @@ export function Layout(props: Props) {
               ))}
             </Tabs>
           </Box>
+          <IconButton
+            color="inherit"
+            disabled={refreshing}
+            onClick={() => {
+              setRefreshing(true);
+              fetch('/api/sync').then(() => {
+                router.reload();
+              });
+            }}
+          >
+            <RefreshIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Toolbar />

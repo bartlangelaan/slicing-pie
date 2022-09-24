@@ -1,9 +1,8 @@
 /* eslint-disable import/no-cycle, @typescript-eslint/ban-types, consistent-return */
 import { NextApiRequest, NextApiResponse } from 'next';
-import { basicAuthCheck } from '../../utils/access';
 import { requestAll } from './get-slicing-pie';
 
-export interface TimeEntry {
+interface TimeEntry {
   id: string;
   administration_id: string;
   contact_id: string;
@@ -38,15 +37,5 @@ export function getAllHours(period: string) {
 }
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  await basicAuthCheck(req, res);
-
-  if (typeof req.query.period !== 'string') {
-    return res.status(400).json({ error: 'no period provided' });
-  }
-
-  const response = await getAllHours(req.query.period);
-
-  res.json({
-    data: response,
-  });
+  res.json({});
 };
