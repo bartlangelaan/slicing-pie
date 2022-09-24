@@ -4,7 +4,7 @@ import { DataGrid, GridValueFormatterParams } from '@mui/x-data-grid';
 import { Layout } from 'components/Layout';
 import { format, isSameDay, addMinutes, isWeekend, isAfter } from 'date-fns';
 import { GetStaticPropsContext, InferGetStaticPropsType } from 'next';
-import { mongo } from 'utils/mongo';
+import { mongo, pick } from 'utils/mongo';
 import { TimeEntry } from 'utils/moneybird-types';
 import { serialize, unserialize } from 'utils/serialize';
 import { useRouter } from 'next/router';
@@ -30,16 +30,18 @@ export async function getStaticProps(
       q.year === context.params!.year && q.quarter === context.params!.quarter,
   );
 
-  const timeEntries = await mongo
-    .db()
-    .collection<TimeEntry>('time_entries')
-    .find({
-      started_at: {
-        $gte: quarter!.start,
-        $lte: quarter!.end,
-      },
-    })
-    .toArray();
+  const timeEntries = await pick(
+    mongo
+      .db()
+      .collection<TimeEntry>('time_entries')
+      .find({
+        started_at: {
+          $gte: quarter!.start,
+          $lte: quarter!.end,
+        },
+      }),
+    ['started_at', 'ended_at', 'paused_duration', 'user'],
+  ).toArray();
 
   return {
     props: { timeEntries: timeEntries.map(serialize), params: context.params! },
