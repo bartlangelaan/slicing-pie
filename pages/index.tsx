@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Loader } from '../components/Loader';
 import { Header } from '../components/Header';
 import { useSlicingPie } from '../components/SlicingPieContext';
+import { Layout } from 'components/Layout';
 
 const DynamicDashboard = dynamic(
   () =>
@@ -27,7 +28,7 @@ export default function Home() {
   const { retryAfter } = useSlicingPie();
 
   return (
-    <>
+    <Layout>
       <Head>
         <title>Slicing pie - Popup IO</title>
       </Head>
@@ -47,7 +48,7 @@ export default function Home() {
           )}
         </div>
       </div>
-    </>
+    </Layout>
   );
 }
 

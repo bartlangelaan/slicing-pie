@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { DataGrid, GridValueFormatterParams } from '@mui/x-data-grid';
 import useAxios from 'axios-hooks';
+import { Layout } from 'components/Layout';
 import {
   eachQuarterOfInterval,
   format,
@@ -57,7 +58,7 @@ export default function HoursPage() {
   }));
 
   return (
-    <>
+    <Layout tab="hours">
       <style global jsx>{`
         html,
         body,
@@ -168,6 +169,6 @@ export default function HoursPage() {
           />
         </Container>
       )}
-    </>
+    </Layout>
   );
 }
