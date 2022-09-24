@@ -1,14 +1,12 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
   parserOptions: {
     project: './tsconfig.json',
   },
   extends: [
+    'next',
     'plugin:@typescript-eslint/recommended',
     'airbnb',
     'airbnb-typescript',
-    'prettier',
     'plugin:prettier/recommended',
     'airbnb/hooks',
   ],
@@ -16,6 +14,7 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'react/no-array-index-key': 'off',
     'react/require-default-props': 'off',
+    'react/no-unknown-property': 'off',
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/explicit-module-boundary-types': 0,
     '@typescript-eslint/no-unsafe-assignment': 0,
@@ -36,9 +35,5 @@ module.exports = {
       { namedComponents: 'function-declaration' },
     ],
     '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
-  },
-  env: {
-    node: true,
-    jest: true,
   },
 };

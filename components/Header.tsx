@@ -58,6 +58,7 @@ export function Header() {
       cantRetry={!slicingPie.canRetry}
     >
       <h1 className="text-xl flex items-center content-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-popup-io-cropped-white.png"
           alt="Logo Popup IO"
