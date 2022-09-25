@@ -16,7 +16,7 @@ interface Props {
 }
 
 const pages = {
-  '/': 'Taart',
+  '/pie': 'Taart',
   '/hours': 'Urenoverzicht',
 };
 
@@ -34,7 +34,9 @@ export function Layout(props: Props) {
             <Tabs
               indicatorColor="secondary"
               textColor="inherit"
-              value={router.pathname}
+              value={Object.keys(pages).find((k) =>
+                router.asPath.startsWith(k),
+              )}
               onChange={(_, newUrl: keyof typeof pages) => router.push(newUrl)}
             >
               {Object.entries(pages).map(([url, title]) => (
