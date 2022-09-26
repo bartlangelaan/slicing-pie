@@ -2,6 +2,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { setup, RedisStore } from 'axios-cache-adapter';
 import redis from 'redis';
+import {
+  Contact,
+  FinancialMutation,
+  GeneralJournalDocument,
+  PurchaseInvoice,
+  Receipt,
+  SalesInvoice,
+} from 'utils/moneybird-types';
 import { basicAuthCheck } from '../../utils/access';
 import { hiddenDataMock } from '../../utils/hiddenDataMock';
 import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
@@ -249,92 +257,34 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // eslint-disable-next-line no-restricted-syntax
     for (const financialMutationsRequest of financialMutationsSyncResponse) {
       // eslint-disable-next-line no-await-in-loop
-      const financialMutationsResponse = await api.post<
+      const financialMutationsResponse = await api.post<FinancialMutation[]>(
+        '/financial_mutations/synchronization.json',
         {
-          amount: string;
-          currency: 'USD' | 'EUR';
-          exchange_rate: string;
-          ledger_account_bookings: {
-            ledger_account_id: string;
-            price: string;
-          }[];
-        }[]
-      >('/financial_mutations/synchronization.json', {
-        ids: [financialMutationsRequest.id],
-        version: financialMutationsRequest.version,
-      });
+          ids: [financialMutationsRequest.id],
+          version: financialMutationsRequest.version,
+        },
+      );
 
       financialMutationsResponses.push(financialMutationsResponse.data[0]);
     }
 
-    const generalJournalDocumentsRequest = requestAll<
-      {
-        general_journal_document_entries: {
-          ledger_account_id: string;
-          debit: string;
-          credit: string;
-        }[];
-      }[]
-    >(
+    const generalJournalDocumentsRequest = requestAll<GeneralJournalDocument[]>(
       `/documents/general_journal_documents.json?filter=period:${periodFilter}`,
     );
 
-    const purchaseInvoicesRequest = requestAll<
-      {
-        state: 'open' | 'new' | 'paid';
-        total_price_excl_tax: string;
-        currency: 'USD' | 'EUR';
-        exchange_rate: string;
-        details: {
-          ledger_account_id: string;
-          price: string;
-          total_price_excl_tax_with_discount?: string;
-          total_price_excl_tax_with_discount_base?: string;
-        }[];
-        payments: {
-          ledger_account_id: string;
-          price: string;
-          price_base?: string;
-        }[];
-      }[]
-    >(`/documents/purchase_invoices.json?filter=period:${periodFilter}`);
+    const purchaseInvoicesRequest = requestAll<PurchaseInvoice[]>(
+      `/documents/purchase_invoices.json?filter=period:${periodFilter}`,
+    );
 
-    const receiptsRequest = requestAll<
-      {
-        total_price_excl_tax: string;
-        currency: 'USD' | 'EUR';
-        exchange_rate: string;
-        details: {
-          ledger_account_id: string;
-          price: string;
-          total_price_excl_tax_with_discount?: string;
-          total_price_excl_tax_with_discount_base?: string;
-        }[];
-        payments: { ledger_account_id: string; price: string }[];
-      }[]
-    >(`/documents/receipts.json?filter=period:${periodFilter}`);
+    const receiptsRequest = requestAll<Receipt[]>(
+      `/documents/receipts.json?filter=period:${periodFilter}`,
+    );
 
     const timeEntriesRequest = getAllHours(
       req.query.periodFilter === '2021' ? '20201101..20211231' : periodFilter,
     );
 
-    const salesInvoicesRequest = requestAll<
-      {
-        state:
-          | 'pending_payment'
-          | 'paid'
-          | 'open'
-          | 'late'
-          | 'scheduled'
-          | 'reminded';
-        total_price_excl_tax: string;
-        contact: {
-          id: string;
-          company_name: string;
-          custom_fields: { id: string; name: string; value: string }[];
-        };
-      }[]
-    >(
+    const salesInvoicesRequest = requestAll<SalesInvoice[]>(
       `/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid,period:${periodFilter}`,
     );
 
@@ -352,17 +302,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       salesInvoicesRequest,
     ]);
 
-    const contactsResponse = await axios.post<
+    const contactsResponse = await axios.post<Contact[]>(
+      '/contacts/synchronization.json',
       {
-        id: string;
-        company_name: string;
-        custom_fields: { id: string; name: string; value: string }[];
-      }[]
-    >('/contacts/synchronization.json', {
-      ids: Array.from(
-        new Set(salesInvoicesResponse.map((item) => item.contact.id)),
-      ),
-    });
+        ids: Array.from(
+          new Set(salesInvoicesResponse.map((item) => item.contact.id)),
+        ),
+      },
+    );
 
     const totalProfitPlus = salesInvoicesResponse.reduce((total, item) => {
       if (item.state !== 'paid') return total;

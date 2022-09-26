@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop */
+/* eslint-disable no-console, no-await-in-loop */
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { mongo } from 'utils/mongo';
@@ -14,7 +14,15 @@ const moneybird = axios.create({
   },
 });
 
-const typesToSync = ['time_entries'];
+const typesToSync = [
+  'time_entries',
+  'documents/general_journal_documents',
+  'documents/purchase_invoices',
+  'documents/receipts',
+  'sales_invoices',
+];
+
+const typesToSyncSupported = ['financial_mutations', 'contacts'];
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
@@ -22,9 +30,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const syncVersion = Math.round(new Date().getTime());
 
-    await Promise.all(typesToSync.map((type) => sync(syncVersion, type)));
     await Promise.all([
-      ...typesToSync.map((type) => deleteOldVersions(syncVersion, type)),
+      ...typesToSync.map((type) => sync(syncVersion, type)),
+      ...typesToSyncSupported.map((type) => sync(syncVersion, type, true)),
+    ]);
+    await Promise.all([
+      ...[...typesToSync, ...typesToSyncSupported].map((type) =>
+        deleteOldVersions(syncVersion, type),
+      ),
       ...quarters.map((quarter) => res.revalidate(quarter.hoursUrl)),
     ]);
 
@@ -32,23 +45,36 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       status: 'ok',
     });
   } catch (err: any) {
+    console.error(err);
     res.json({ status: 'error', error: err.message });
   } finally {
     await mongo.close();
   }
 };
 
-async function sync(syncVersion: number, type: string) {
-  let next = `/${type}.json`;
+async function sync(syncVersion: number, type: string, syncSupported = false) {
+  let next = syncSupported ? `/${type}/synchronization.json` : `/${type}.json`;
   while (next) {
+    console.log(syncVersion, next);
     const res = await moneybird.get<object[]>(next);
+
+    if (res.data.length === 0) {
+      break;
+    }
+
+    const items = syncSupported
+      ? (
+          await moneybird.post<object[]>(`/${type}/synchronization.json`, {
+            ids: res.data.map((d: any) => d.id),
+          })
+        ).data
+      : res.data;
+
     await mongo.connect();
     await mongo
       .db()
       .collection(type)
-      .insertMany(
-        res.data.map((item) => ({ ...unserialize(item), syncVersion })),
-      );
+      .insertMany(items.map((item) => ({ ...unserialize(item), syncVersion })));
 
     const link = parseLinkHeader(res.headers.link);
     if (!link?.next?.url) {
