@@ -31,6 +31,7 @@ export interface TimeEntry {
 
 export interface FinancialMutation {
   amount: string;
+  date: Date;
   currency: 'USD' | 'EUR';
   exchange_rate: string;
   ledger_account_bookings: {
@@ -48,6 +49,7 @@ export interface GeneralJournalDocument {
 }
 
 export interface PurchaseInvoice {
+  date: Date;
   state: 'open' | 'new' | 'paid';
   total_price_excl_tax: string;
   currency: 'USD' | 'EUR';
@@ -66,6 +68,7 @@ export interface PurchaseInvoice {
 }
 
 export interface Receipt {
+  date: Date;
   total_price_excl_tax: string;
   currency: 'USD' | 'EUR';
   exchange_rate: string;
@@ -80,12 +83,14 @@ export interface Receipt {
 
 export interface SalesInvoice {
   state:
+    | 'draft'
     | 'pending_payment'
     | 'paid'
     | 'open'
     | 'late'
     | 'scheduled'
     | 'reminded';
+  invoice_date: Date;
   total_price_excl_tax: string;
   contact: {
     id: string;
