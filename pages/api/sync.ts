@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console, no-await-in-loop */
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -54,28 +55,26 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 async function syncSupported(syncVersion: number, type: string) {
-  const listRes = await moneybird.get<object[]>(
+  const listRes = await moneybird.get<{ id: number }[]>(
     `/${type}/synchronization.json`,
   );
 
   const idChunks = chunk(
-    listRes.data.map((d: any) => d.id),
+    listRes.data.map((d) => d.id),
     100,
   );
 
-  const items = (
-    await Promise.all(
-      idChunks.map(async (ids) => {
-        const res = await moneybird.post<object[]>(
-          `/${type}/synchronization.json`,
-          {
-            ids,
-          },
-        );
-        return res.data;
-      }),
-    )
-  ).flat();
+  const items: object[] = [];
+
+  for (const ids of idChunks) {
+    const res = await moneybird.post<{ id: number }[]>(
+      `/${type}/synchronization.json`,
+      {
+        ids,
+      },
+    );
+    items.push(...res.data);
+  }
 
   await mongo.connect();
   await mongo
