@@ -1,33 +1,45 @@
 import { formatISO } from 'date-fns';
 
-export function serialize<T extends object>(item: T): T {
-  return mapValues(item, (value) => {
-    if (value instanceof Date) {
-      return formatISO(value);
-    }
+function serializeValue(value: unknown): unknown {
+  if (value instanceof Date) {
+    return formatISO(value);
+  }
 
-    if (value !== null && typeof value === 'object') {
-      return serialize(value);
-    }
+  if (Array.isArray(value)) {
+    return value.map(serializeValue);
+  }
 
-    return value;
-  });
+  if (value !== null && typeof value === 'object') {
+    return serialize(value);
+  }
+
+  return value;
 }
 
-const dateRegex = /\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ/;
+export function serialize<T extends object>(item: T): T {
+  return mapValues(item, serializeValue);
+}
+
+const dateRegex = /\d\d\d\d-\d\d-\d\d(T\d\d:\d\d:\d\d.\d\d\dZ)?/;
+
+function unserializeValue(value: unknown): unknown {
+  if (typeof value === 'string' && dateRegex.test(value)) {
+    return new Date(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(unserializeValue);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    return unserialize(value);
+  }
+
+  return value;
+}
 
 export function unserialize<T extends object>(item: T): T {
-  return mapValues(item, (value) => {
-    if (typeof value === 'string' && dateRegex.test(value)) {
-      return new Date(value);
-    }
-
-    if (value !== null && typeof value === 'object') {
-      return unserialize(value);
-    }
-
-    return value;
-  });
+  return mapValues(item, unserializeValue);
 }
 
 function mapValues<T extends object>(
