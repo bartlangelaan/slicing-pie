@@ -5,6 +5,7 @@ import { mongo } from 'utils/mongo';
 import parseLinkHeader from 'parse-link-header';
 import { unserialize } from 'utils/serialize';
 import { quarters } from 'utils/quarters';
+import chunk from 'lodash/chunk';
 import { basicAuthCheck } from '../../utils/access';
 
 const moneybird = axios.create({
@@ -32,7 +33,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     await Promise.all([
       ...typesToSync.map((type) => sync(syncVersion, type)),
-      ...typesToSyncSupported.map((type) => sync(syncVersion, type, true)),
+      ...typesToSyncSupported.map((type) => syncSupported(syncVersion, type)),
     ]);
     await Promise.all([
       ...[...typesToSync, ...typesToSyncSupported].map((type) =>
@@ -52,8 +53,39 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-async function sync(syncVersion: number, type: string, syncSupported = false) {
-  let next = syncSupported ? `/${type}/synchronization.json` : `/${type}.json`;
+async function syncSupported(syncVersion: number, type: string) {
+  const listRes = await moneybird.get<object[]>(
+    `/${type}/synchronization.json`,
+  );
+
+  const idChunks = chunk(
+    listRes.data.map((d: any) => d.id),
+    100,
+  );
+
+  const items = (
+    await Promise.all(
+      idChunks.map(async (ids) => {
+        const res = await moneybird.post<object[]>(
+          `/${type}/synchronization.json`,
+          {
+            ids,
+          },
+        );
+        return res.data;
+      }),
+    )
+  ).flat();
+
+  await mongo.connect();
+  await mongo
+    .db()
+    .collection(type)
+    .insertMany(items.map((item) => ({ ...unserialize(item), syncVersion })));
+}
+
+async function sync(syncVersion: number, type: string) {
+  let next = `/${type}.json`;
   while (next) {
     console.log(syncVersion, next);
     const res = await moneybird.get<object[]>(next);
@@ -62,19 +94,13 @@ async function sync(syncVersion: number, type: string, syncSupported = false) {
       break;
     }
 
-    const items = syncSupported
-      ? (
-          await moneybird.post<object[]>(`/${type}/synchronization.json`, {
-            ids: res.data.map((d: any) => d.id),
-          })
-        ).data
-      : res.data;
-
     await mongo.connect();
     await mongo
       .db()
       .collection(type)
-      .insertMany(items.map((item) => ({ ...unserialize(item), syncVersion })));
+      .insertMany(
+        res.data.map((item) => ({ ...unserialize(item), syncVersion })),
+      );
 
     const link = parseLinkHeader(res.headers.link);
     if (!link?.next?.url) {
