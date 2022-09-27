@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import {
   Contact,
   FinancialMutation,
@@ -11,7 +11,6 @@ import {
 } from 'utils/moneybird-types';
 import { endOfYear, startOfYear } from 'date-fns';
 import { mongo } from 'utils/mongo';
-import { basicAuthCheck } from '../../utils/access';
 import { hiddenDataMock } from '../../utils/hiddenDataMock';
 import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
 
@@ -135,8 +134,6 @@ function isPersonalCost(id: string) {
 }
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  await basicAuthCheck(req, res);
-
   const hiddenModeEnabled = !!req.query.hidden;
 
   if (hiddenModeEnabled) {

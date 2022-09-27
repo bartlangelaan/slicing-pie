@@ -7,7 +7,6 @@ import parseLinkHeader from 'parse-link-header';
 import { unserialize } from 'utils/serialize';
 import { quarters } from 'utils/quarters';
 import chunk from 'lodash/chunk';
-import { basicAuthCheck } from '../../utils/access';
 
 const moneybird = axios.create({
   baseURL: 'https://moneybird.com/api/v2/313185156605150255',
@@ -26,9 +25,7 @@ const typesToSync = [
 
 const typesToSyncSupported = ['financial_mutations', 'contacts'];
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
-  await basicAuthCheck(req, res);
-
+export default async (_: NextApiRequest, res: NextApiResponse) => {
   try {
     const syncVersion = Math.round(new Date().getTime());
 
