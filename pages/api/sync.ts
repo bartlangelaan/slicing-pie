@@ -7,6 +7,7 @@ import parseLinkHeader from 'parse-link-header';
 import { unserialize } from 'utils/serialize';
 import { quarters } from 'utils/quarters';
 import chunk from 'lodash/chunk';
+import { years } from 'utils/years';
 
 const moneybird = axios.create({
   baseURL: 'https://moneybird.com/api/v2/313185156605150255',
@@ -38,6 +39,7 @@ export default async (_: NextApiRequest, res: NextApiResponse) => {
         deleteOldVersions(syncVersion, type),
       ),
       ...quarters.map((quarter) => res.revalidate(quarter.hoursUrl)),
+      ...years.map((year) => res.revalidate(year.pieUrl)),
     ]);
 
     res.json({

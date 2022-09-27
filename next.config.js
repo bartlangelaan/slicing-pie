@@ -9,7 +9,11 @@ const nextConfig = {
   },
   redirects: async () => {
     return [
-      { source: '/', destination: '/pie', permanent: true },
+      {
+        source: '/',
+        destination: `/pie/${format(new Date(), 'yyyy')}`,
+        permanent: true,
+      },
       {
         source: '/hours',
         destination: `/hours/${format(new Date(), 'yyyy/Q')}`,

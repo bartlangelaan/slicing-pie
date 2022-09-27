@@ -1,5 +1,3 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { AxiosError } from 'axios';
 import {
   Contact,
   FinancialMutation,
@@ -9,14 +7,13 @@ import {
   SalesInvoice,
   TimeEntry,
 } from 'utils/moneybird-types';
-import { endOfYear, startOfYear } from 'date-fns';
 import { mongo } from 'utils/mongo';
-import { hiddenDataMock } from '../../utils/hiddenDataMock';
-import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
-
-function isAxiosError(error: any): error is AxiosError {
-  return !!error.response;
-}
+import { hiddenDataMock } from './hiddenDataMock';
+import {
+  GetSlicingPieResponse,
+  Person,
+} from '../components/Dashboard/GetSlicingPieResponse';
+import { years } from './years';
 
 // @todo openstaande facturen meenemen als losse regel (+ als winst?) - DONE
 // @todo totalen bij omzet per klant tabel - DONE
@@ -133,21 +130,16 @@ function isPersonalCost(id: string) {
   }) as Person | undefined;
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const hiddenModeEnabled = !!req.query.hidden;
-
-  if (hiddenModeEnabled) {
-    res.json(hiddenDataMock);
-    return;
+export async function getSlicingPie(
+  year: string,
+): Promise<GetSlicingPieResponse> {
+  if (year === 'hidden') {
+    return hiddenDataMock;
   }
 
-  const year = parseInt(req.query.periodFilter as string, 10);
+  const { periodFilter } = years.find((y) => y.year === year)!;
 
-  const periodFilter = {
-    $gte: startOfYear(new Date(`${year}-01-01T00:00:00Z`)),
-    $lte: endOfYear(new Date(`${year}-01-01T00:00:00Z`)),
-  };
-
+  // eslint-disable-next-line no-useless-catch
   try {
     const financialMutationsResponses = await mongo
       .db()
@@ -683,7 +675,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         return 0;
       });
 
-    res.json({
+    return {
       status: 200,
       year,
       totalProfit,
@@ -698,17 +690,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       totalTimeSpentFiltered,
       revenuePerAccount,
       timeSpentPerProject: Object.values(timeSpentPerProject),
-    });
+    };
   } catch (error: any) {
-    if (isAxiosError(error)) {
-      res.json({
-        status: 429,
-        retryAfter: error.response?.headers['retry-after'],
-      });
-
-      return;
-    }
-
     throw error;
   }
-};
+}

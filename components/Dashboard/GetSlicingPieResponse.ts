@@ -2,6 +2,7 @@ export type Person = 'bart' | 'ian' | 'niels';
 
 export type GetSlicingPieResponse = {
   status: 200;
+  year: number;
   timeSpent: {
     [key in Person]: {
       year: number;
@@ -16,6 +17,8 @@ export type GetSlicingPieResponse = {
   personalFinancialMutations: {
     [key in Person]: { plus: number; min: number };
   };
+  personalPurchaseInvoices: object;
+  personalReceipts: object;
   personalCosts: { [key in Person]: { plus: number; min: number } };
   totalTimeSpent: number;
   totalTimeSpentFiltered: number;
