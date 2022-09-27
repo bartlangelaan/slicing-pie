@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { setup, RedisStore } from 'axios-cache-adapter';
-import redis from 'redis';
+import axios, { AxiosError } from 'axios';
 import {
   Contact,
   FinancialMutation,
@@ -9,24 +7,17 @@ import {
   PurchaseInvoice,
   Receipt,
   SalesInvoice,
+  TimeEntry,
 } from 'utils/moneybird-types';
+import { endOfYear, startOfYear } from 'date-fns';
+import { mongo } from 'utils/mongo';
 import { basicAuthCheck } from '../../utils/access';
 import { hiddenDataMock } from '../../utils/hiddenDataMock';
 import { Person } from '../../components/Dashboard/GetSlicingPieResponse';
-// eslint-disable-next-line import/no-cycle
-import { getAllHours } from './get-hours';
 
 function isAxiosError(error: any): error is AxiosError {
   return !!error.response;
 }
-
-axios.defaults.baseURL = 'https://moneybird.com/api/v2/313185156605150255';
-axios.defaults.headers = {
-  ...axios.defaults.headers,
-  common: {
-    authorization: `Bearer ${process.env.MONEYBIRD_API_KEY}`,
-  },
-};
 
 // @todo openstaande facturen meenemen als losse regel (+ als winst?) - DONE
 // @todo totalen bij omzet per klant tabel - DONE
@@ -66,31 +57,6 @@ axios.defaults.headers = {
 // @todo arbeidskorting
 // @todo Sandbox administratie
 // @todo timeline? Alles teruggeven aan frontend en "rewind" en/of periode filters toevoegen
-
-const client = redis.createClient({
-  url: process.env.REDIS_URL,
-});
-
-client.on('error', (err) => {
-  // eslint-disable-next-line no-console
-  console.error('after createClient', err);
-});
-
-const store = new RedisStore(client);
-
-// client.set('bla', 'joe');
-export const api = setup({
-  // `axios` options
-  baseURL: axios.defaults.baseURL,
-  // `axios-cache-adapter` options
-  cache: {
-    maxAge: 365 * 24 * 60 * 60 * 1000,
-    store, // Pass `RedisStore` store to `axios-cache-adapter`
-    exclude: {
-      methods: ['get', 'put', 'patch', 'delete'],
-    },
-  },
-});
 
 // Inkoop diensten
 const costOfSalesLedgerAccountIds = ['318138549261043069'];
@@ -168,42 +134,6 @@ function isPersonalCost(id: string) {
   }) as Person | undefined;
 }
 
-async function request<T>(
-  url: string,
-  page: number,
-  result: AxiosResponse<T>[],
-  requestConfig?: AxiosRequestConfig,
-) {
-  const token = url.includes('?') ? '&' : '?';
-
-  const res = await api.get<T>(`${url}${token}page=${page}`, requestConfig);
-
-  result.push(res);
-
-  if (res.headers.link?.includes('next')) {
-    await request<T>(url, page + 1, result);
-  }
-
-  return result;
-}
-
-export async function requestAll<T>(
-  url: string,
-  requestConfig?: AxiosRequestConfig,
-) {
-  const result = [] as AxiosResponse<T>[];
-
-  try {
-    const res = await request<T>(url, 1, result, requestConfig);
-
-    return res.map((req) => req.data).flat();
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
-    throw err;
-  }
-}
-
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await basicAuthCheck(req, res);
 
@@ -214,79 +144,63 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return;
   }
 
-  if (!client.connected) {
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(client);
-      }, 5000);
+  const year = parseInt(req.query.periodFilter as string, 10);
 
-      client
-        .on('error', (err) => {
-          // eslint-disable-next-line no-console
-          console.error('reject', err);
-          reject(client);
-          clearTimeout(timeout);
-        })
-        .on('ready', () => {
-          resolve(client);
-          clearTimeout(timeout);
-        });
-    });
-  }
-
-  const periodFilter =
-    req.query.periodFilter === '2021' && new Date().getFullYear() === 2022
-      ? 'prev_year'
-      : 'this_year';
+  const periodFilter = {
+    $gte: startOfYear(new Date(`${year}-01-01T00:00:00Z`)),
+    $lte: endOfYear(new Date(`${year}-01-01T00:00:00Z`)),
+  };
 
   try {
-    const financialMutationsSyncResponse = await requestAll<
-      {
-        id: string;
-        version: number;
-      }[]
-    >(
-      `/financial_mutations/synchronization.json?filter=period:${periodFilter}`,
-      {
-        cache: { maxAge: 0 },
-      },
-    );
+    const financialMutationsResponses = await mongo
+      .db()
+      .collection<FinancialMutation>('financial_mutations')
+      .find({ date: periodFilter })
+      .toArray();
 
-    const financialMutationsResponses = [];
+    const generalJournalDocumentsRequest = mongo
+      .db()
+      .collection<GeneralJournalDocument>('general_journal_documents')
+      .find()
+      .toArray();
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const financialMutationsRequest of financialMutationsSyncResponse) {
-      // eslint-disable-next-line no-await-in-loop
-      const financialMutationsResponse = await api.post<FinancialMutation[]>(
-        '/financial_mutations/synchronization.json',
-        {
-          ids: [financialMutationsRequest.id],
-          version: financialMutationsRequest.version,
+    const purchaseInvoicesRequest = mongo
+      .db()
+      .collection<PurchaseInvoice>('documents/purchase_invoices')
+      .find({ date: periodFilter })
+      .toArray();
+
+    const receiptsRequest = mongo
+      .db()
+      .collection<Receipt>('documents/receipts')
+      .find({ date: periodFilter })
+      .toArray();
+
+    const timeEntriesRequest = mongo
+      .db()
+      .collection<TimeEntry>('time_entries')
+      .find({
+        started_at: periodFilter,
+      })
+      .toArray();
+
+    const salesInvoicesRequest = mongo
+      .db()
+      .collection<SalesInvoice>('sales_invoices')
+      .find({
+        invoice_date: periodFilter,
+        state: {
+          $in: [
+            'late',
+            'open',
+            'scheduled',
+            'pending_payment',
+            'reminded',
+            'paid',
+          ],
         },
-      );
-
-      financialMutationsResponses.push(financialMutationsResponse.data[0]);
-    }
-
-    const generalJournalDocumentsRequest = requestAll<GeneralJournalDocument[]>(
-      `/documents/general_journal_documents.json?filter=period:${periodFilter}`,
-    );
-
-    const purchaseInvoicesRequest = requestAll<PurchaseInvoice[]>(
-      `/documents/purchase_invoices.json?filter=period:${periodFilter}`,
-    );
-
-    const receiptsRequest = requestAll<Receipt[]>(
-      `/documents/receipts.json?filter=period:${periodFilter}`,
-    );
-
-    const timeEntriesRequest = getAllHours(
-      req.query.periodFilter === '2021' ? '20201101..20211231' : periodFilter,
-    );
-
-    const salesInvoicesRequest = requestAll<SalesInvoice[]>(
-      `/sales_invoices.json?filter=state:late|open|scheduled|pending_payment|reminded|paid,period:${periodFilter}`,
-    );
+      })
+      .toArray();
 
     const [
       generalJournalDocumentsResponse,
@@ -302,14 +216,18 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       salesInvoicesRequest,
     ]);
 
-    const contactsResponse = await axios.post<Contact[]>(
-      '/contacts/synchronization.json',
-      {
-        ids: Array.from(
-          new Set(salesInvoicesResponse.map((item) => item.contact.id)),
-        ),
-      },
+    const ids = Array.from(
+      new Set(salesInvoicesResponse.map((item) => item.contact.id)),
     );
+    const contactsResponse = await mongo
+      .db()
+      .collection<Contact>('contacts')
+      .find({
+        id: {
+          $in: ids,
+        },
+      })
+      .toArray();
 
     const totalProfitPlus = salesInvoicesResponse.reduce((total, item) => {
       if (item.state !== 'paid') return total;
@@ -732,7 +650,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       },
     );
 
-    const revenuePerAccount = contactsResponse.data
+    const revenuePerAccount = contactsResponse
       .map((item) => {
         const goodwillValuePerson = (item.custom_fields
           .find((field) => field.id === '325602584896210834')
@@ -770,10 +688,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.json({
       status: 200,
-      year:
-        req.query.periodFilter === '2021' || new Date().getFullYear() === 2021
-          ? 2021
-          : 2022,
+      year,
       totalProfit,
       personalGeneralJournalDocuments,
       personalCosts,
