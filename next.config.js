@@ -11,8 +11,13 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: `/pie/${format(new Date(), 'yyyy')}`,
+        destination: `/pie`,
         permanent: true,
+      },
+      {
+        source: '/',
+        destination: `/pie/${format(new Date(), 'yyyy')}`,
+        permanent: false,
       },
       {
         source: '/hours',
