@@ -105,7 +105,7 @@ const config2022 = {
   },
 };
 
-const configs = {
+const configs: { [year: number]: typeof config2021 } = {
   2021: config2021,
   2022: config2022,
 };

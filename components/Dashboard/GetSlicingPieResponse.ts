@@ -2,7 +2,7 @@ export type Person = 'bart' | 'ian' | 'niels';
 
 export type GetSlicingPieResponse = {
   status: 200;
-  year: number;
+  year: string;
   timeSpent: {
     [key in Person]: {
       year: number;
