@@ -15,7 +15,7 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/',
+        source: '/pie',
         destination: `/pie/${format(new Date(), 'yyyy')}`,
         permanent: false,
       },
