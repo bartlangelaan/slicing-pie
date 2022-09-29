@@ -49,9 +49,29 @@ export function Layout(props: Props) {
             disabled={refreshing}
             onClick={() => {
               setRefreshing(true);
-              fetch('/api/sync').then(() => {
-                router.reload();
-              });
+              async function sync() {
+                const res = await fetch('/api/sync').then((r) => r.json());
+
+                // Log status
+                // eslint-disable-next-line no-console
+                console.table(
+                  res?.tasks.map((task: { action: object }) => ({
+                    ...task,
+                    ...Object.fromEntries(
+                      Object.entries(task.action).map(([key, value]) => [
+                        `action.${key}`,
+                        value,
+                      ]),
+                    ),
+                  })),
+                );
+                if (res?.tasks?.length) {
+                  sync();
+                } else if (res?.tasks?.length === 0) {
+                  router.reload();
+                }
+              }
+              sync();
             }}
           >
             <RefreshIcon />

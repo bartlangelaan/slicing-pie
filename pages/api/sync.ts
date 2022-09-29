@@ -26,92 +26,201 @@ const typesToSync = [
 
 const typesToSyncSupported = ['financial_mutations', 'contacts'];
 
-export default async (_: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  async function getRes() {
+    return {
+      tasks: await tasksCollection().find({}).sort({ _id: -1 }).toArray(),
+    };
+  }
+
+  async function runTask({ syncVersion, action }: Task) {
+    if (action.action === 'syncSupported') {
+      const listRes = await moneybird.get<{ id: number }[]>(
+        `/${action.type}/synchronization.json`,
+      );
+
+      const idChunks = chunk(
+        listRes.data.map((d) => d.id),
+        100,
+      );
+      if (idChunks.length)
+        await tasksCollection().insertMany(
+          idChunks.map((ids) => ({
+            syncVersion,
+            state: 'pending',
+            action: { action: 'syncSupportedChunk', type: action.type, ids },
+          })),
+        );
+    } else if (action.action === 'syncSupportedChunk') {
+      const mbRes = await moneybird.post<{ id: number }[]>(
+        `/${action.type}/synchronization.json`,
+        {
+          ids: action.ids,
+        },
+      );
+      if (mbRes.data.length) {
+        await mongo
+          .db()
+          .collection(action.type)
+          .insertMany(
+            mbRes.data.map((item) => ({ ...unserialize(item), syncVersion })),
+          );
+      }
+    } else if (action.action === 'sync') {
+      const mbRes = await moneybird.get<object[]>(
+        action.url ?? `/${action.type}.json`,
+      );
+
+      if (mbRes.data.length)
+        await mongo
+          .db()
+          .collection(action.type)
+          .insertMany(
+            mbRes.data.map((item) => ({ ...unserialize(item), syncVersion })),
+          );
+
+      const link = parseLinkHeader(mbRes.headers.link);
+      if (link?.next?.url) {
+        await tasksCollection().insertOne({
+          syncVersion,
+          state: 'pending',
+          action: { action: 'sync', type: action.type, url: link.next.url },
+        });
+      }
+    } else if (action.action === 'deleteOldVersions') {
+      await mongo
+        .db()
+        .collection(action.type)
+        .deleteMany({ syncVersion: { $lt: syncVersion } });
+    } else if (action.action === 'revalidate') {
+      await res.revalidate(action.url);
+    }
+  }
+
   try {
-    const syncVersion = Math.round(new Date().getTime());
+    await mongo.connect();
 
-    await Promise.all([
-      ...typesToSync.map((type) => sync(syncVersion, type)),
-      ...typesToSyncSupported.map((type) => syncSupported(syncVersion, type)),
-    ]);
-    await Promise.all([
-      ...[...typesToSync, ...typesToSyncSupported].map((type) =>
-        deleteOldVersions(syncVersion, type),
-      ),
-      ...quarters.map((quarter) => res.revalidate(quarter.hoursUrl)),
-      ...years.map((year) => res.revalidate(year.pieUrl)),
-    ]);
+    if (req.query.restart) {
+      await tasksCollection().deleteMany({});
+      console.log('Restarted.');
+    }
 
-    res.json({
-      status: 'ok',
-    });
+    const task = await claimTask();
+    console.log({ task });
+
+    if (task) {
+      await runTask(task);
+      await tasksCollection().updateOne(
+        // eslint-disable-next-line no-underscore-dangle
+        { _id: task._id },
+        { $set: { state: 'done' } },
+      );
+      return res.json(await getRes());
+    }
+
+    const runningTask = await getLastTask('running');
+    console.log({ runningTask });
+    if (runningTask) {
+      return res.json(await getRes());
+    }
+
+    const doneTask = await getLastTask('done');
+    console.log({ doneTask });
+
+    if (!doneTask) {
+      // Create new (first) tasks
+      const syncVersion = Math.round(new Date().getTime());
+      console.log('Creating tasks 1', syncVersion);
+
+      await tasksCollection().insertMany([
+        ...typesToSync.map((type) => ({
+          syncVersion,
+          state: 'pending' as const,
+          action: { action: 'sync' as const, type },
+        })),
+        ...typesToSyncSupported.map((type) => ({
+          syncVersion,
+          state: 'pending' as const,
+          action: {
+            action: 'syncSupported' as const,
+            type,
+          },
+        })),
+      ]);
+      return res.json(await getRes());
+    }
+
+    const { syncVersion, action } = doneTask;
+
+    if (
+      action.action === 'sync' ||
+      action.action === 'syncSupportedChunk' ||
+      action.action === 'syncSupported'
+    ) {
+      console.log('Creating tasks 2', syncVersion);
+      await tasksCollection().insertMany(
+        [...typesToSync, ...typesToSyncSupported].map((type) => ({
+          syncVersion: doneTask.syncVersion,
+          state: 'pending',
+          action: { action: 'deleteOldVersions', type },
+        })),
+      );
+      return res.json(await getRes());
+    }
+
+    if (doneTask.action.action === 'deleteOldVersions') {
+      console.log('Creating tasks 3', syncVersion);
+      await tasksCollection().insertMany(
+        [
+          ...quarters.map((quarter) => quarter.hoursUrl),
+          ...years.map((year) => year.pieUrl),
+        ].map((url) => ({
+          syncVersion: doneTask.syncVersion,
+          state: 'pending',
+          action: { action: 'revalidate', url },
+        })),
+      );
+      return res.json(await getRes());
+    }
+
+    console.log('All done! Deleting all tasks.');
+    await tasksCollection().deleteMany({ syncVersion: doneTask.syncVersion });
+
+    return res.json(await getRes());
   } catch (err: any) {
     console.error(err);
-    res.json({ status: 'error', error: err.message });
-  } finally {
-    await mongo.close();
+    return res.json({ status: 'error', error: err.message });
   }
 };
 
-async function syncSupported(syncVersion: number, type: string) {
-  const listRes = await moneybird.get<{ id: number }[]>(
-    `/${type}/synchronization.json`,
-  );
-
-  const idChunks = chunk(
-    listRes.data.map((d) => d.id),
-    100,
-  );
-
-  const items: object[] = [];
-
-  for (const ids of idChunks) {
-    const res = await moneybird.post<{ id: number }[]>(
-      `/${type}/synchronization.json`,
-      {
-        ids,
-      },
-    );
-    items.push(...res.data);
-  }
-
-  await mongo.connect();
-  await mongo
-    .db()
-    .collection(type)
-    .insertMany(items.map((item) => ({ ...unserialize(item), syncVersion })));
+function tasksCollection() {
+  return mongo.db().collection<Task>('sync_tasks');
 }
 
-async function sync(syncVersion: number, type: string) {
-  let next = `/${type}.json`;
-  while (next) {
-    console.log(syncVersion, next);
-    const res = await moneybird.get<object[]>(next);
-
-    if (res.data.length === 0) {
-      break;
-    }
-
-    await mongo.connect();
-    await mongo
-      .db()
-      .collection(type)
-      .insertMany(
-        res.data.map((item) => ({ ...unserialize(item), syncVersion })),
-      );
-
-    const link = parseLinkHeader(res.headers.link);
-    if (!link?.next?.url) {
-      break;
-    }
-    next = link.next.url;
-  }
+async function claimTask() {
+  const claim = await tasksCollection().findOneAndUpdate(
+    { state: 'pending' },
+    { $set: { state: 'running' } },
+  );
+  return claim.value;
 }
 
-async function deleteOldVersions(syncVersion: number, type: string) {
-  await mongo.connect();
-  await mongo
-    .db()
-    .collection(type)
-    .deleteMany({ syncVersion: { $lt: syncVersion } });
+async function getLastTask(state: Task['state']) {
+  const [task] = await tasksCollection()
+    .find({ state })
+    .sort({ _id: -1 })
+    .limit(1)
+    .toArray();
+  return task;
+}
+
+interface Task {
+  syncVersion: number;
+  state: 'pending' | 'running' | 'done';
+  action:
+    | { action: 'syncSupported'; type: string }
+    | { action: 'syncSupportedChunk'; type: string; ids: number[] }
+    | { action: 'sync'; type: string; url?: string }
+    | { action: 'deleteOldVersions'; type: string }
+    | { action: 'revalidate'; url: string };
 }
