@@ -9,6 +9,7 @@ import { TimeEntry } from 'utils/moneybird-types';
 import { serialize, unserialize } from 'utils/serialize';
 import { useRouter } from 'next/router';
 import { quarters } from 'utils/quarters';
+import NextLink from 'next/link';
 
 export async function getStaticPaths() {
   return {
@@ -83,14 +84,11 @@ export default function HoursPage(
           {quarters.map((quarter) => (
             <Button
               key={quarter.label}
+              component={NextLink}
               variant={
-                router.asPath === `/hours/${quarter.year}/${quarter.quarter}`
-                  ? 'contained'
-                  : 'outlined'
+                router.asPath === quarter.hoursUrl ? 'contained' : 'outlined'
               }
-              onClick={() => {
-                router.push(`/hours/${quarter.year}/${quarter.quarter}`);
-              }}
+              href={quarter.hoursUrl}
             >
               {quarter.label}
             </Button>

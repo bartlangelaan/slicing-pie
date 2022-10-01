@@ -7,12 +7,15 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  experimental: {
+    newNextLinkBehavior: true,
+  },
   redirects: async () => {
     return [
       {
         source: '/',
-        destination: `/pie`,
-        permanent: true,
+        destination: `/pie/${format(new Date(), 'yyyy')}`,
+        permanent: false,
       },
       {
         source: '/pie',
