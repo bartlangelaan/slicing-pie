@@ -55,9 +55,9 @@ import { years } from './years';
 // @todo timeline? Alles teruggeven aan frontend en "rewind" en/of periode filters toevoegen
 
 // Inkoop diensten
-const costOfSalesLedgerAccountIds = ['318138549261043069'];
+export const costOfSalesLedgerAccountIds = ['318138549261043069'];
 
-const ledgerAccountsIds = {
+export const ledgerAccountsIds = {
   bart: {
     withdrawal: '314080108962908154',
     deposit: '314080108885313527',
@@ -87,7 +87,7 @@ const ledgerAccountsIds = {
   },
 };
 
-const categoriesToSkipAsCosts = [
+export const categoriesToSkipAsCosts = [
   '336003494874973243', // Aanschaf MBP Ian 2021
   '339448075967792536', // Aanschaf Samsung scherm Ian 2021
   '341893344854541993', // Aanschaf iPhone Niels 2021
@@ -96,7 +96,7 @@ const categoriesToSkipAsCosts = [
   ledgerAccountsIds.niels.withdrawal,
 ];
 
-const categoriesToApply8020To = [
+export const categoriesToApply8020To = [
   '314086550406170048', // Eten en drinken met relaties
   '314086550309701054', // Relatiegeschenken
 ];
