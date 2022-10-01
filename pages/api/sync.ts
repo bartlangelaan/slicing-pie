@@ -16,15 +16,18 @@ const moneybird = axios.create({
   },
 });
 
-const typesToSync = [
-  'time_entries',
+const typesToSync = ['time_entries'];
+
+const typesToSyncSupported = [
+  'financial_mutations',
+  'contacts',
   'documents/general_journal_documents',
   'documents/purchase_invoices',
   'documents/receipts',
   'sales_invoices',
 ];
 
-const typesToSyncSupported = ['financial_mutations', 'contacts'];
+const periodAddition = '?filter=period%3A202001..202512';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   async function getRes() {
@@ -36,7 +39,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   async function runTask({ syncVersion, action }: Task) {
     if (action.action === 'syncSupported') {
       const listRes = await moneybird.get<{ id: number }[]>(
-        `/${action.type}/synchronization.json`,
+        `/${action.type}/synchronization.json${periodAddition}`,
       );
 
       const idChunks = chunk(
@@ -68,7 +71,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }
     } else if (action.action === 'sync') {
       const mbRes = await moneybird.get<object[]>(
-        action.url ?? `/${action.type}.json`,
+        action.url ?? `/${action.type}.json${periodAddition}`,
       );
 
       if (mbRes.data.length)
