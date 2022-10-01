@@ -150,7 +150,7 @@ export async function getSlicingPie(
     const generalJournalDocumentsRequest = mongo
       .db()
       .collection<GeneralJournalDocument>('general_journal_documents')
-      .find()
+      .find({ date: periodFilter })
       .toArray();
 
     const purchaseInvoicesRequest = mongo
