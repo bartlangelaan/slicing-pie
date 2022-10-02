@@ -1,15 +1,21 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable react/prop-types, no-nested-ternary */
-import { Container } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  Container,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { Layout } from 'components/Layout';
 import { InferGetStaticPropsType } from 'next';
 import { mongo } from 'utils/mongo';
-import {
-  PurchaseInvoice,
-  SalesInvoice,
-  TimeEntry,
-} from 'utils/moneybird-types';
+import { SalesInvoice, TimeEntry } from 'utils/moneybird-types';
 import groupBy from 'lodash/groupBy';
 import mapValues from 'lodash/mapValues';
 import {
@@ -18,6 +24,11 @@ import {
   costOfSalesLedgerAccountIds,
   ledgerAccountsIds,
 } from 'utils/get-slicing-pie';
+import { serialize, unserialize } from 'utils/serialize';
+import { Fragment, useState } from 'react';
+import uniq from 'lodash/uniq';
+import sumBy from 'lodash/sumBy';
+import capitalize from 'lodash/capitalize';
 
 function bookyear(field: string) {
   return {
@@ -126,10 +137,14 @@ function getInvoices() {
     .aggregate<{
       _id: { year: number; state: SalesInvoice['state'] };
       price: number;
+      items: { price: number; description: string }[];
     }>([
       {
         $addFields: {
           bookYear: bookyear('$invoice_date'),
+          bookPrice: {
+            $toDouble: '$total_price_excl_tax',
+          },
         },
       },
       {
@@ -139,8 +154,14 @@ function getInvoices() {
             state: '$state',
           },
           price: {
-            $sum: {
-              $toDouble: '$total_price_excl_tax',
+            $sum: '$bookPrice',
+          },
+          items: {
+            $push: {
+              price: '$bookPrice',
+              reference: '$reference',
+              companyName: '$contact.company_name',
+              description: '$details.description',
             },
           },
         },
@@ -174,7 +195,7 @@ function getCosts() {
         year: number;
       };
       price: number;
-      items: string[];
+      items: { price: number; description: string }[];
     }>([
       {
         $unionWith: { coll: 'documents/receipts' },
@@ -185,6 +206,7 @@ function getCosts() {
       {
         $addFields: {
           bookYear: bookyear('$date'),
+          // TODO: check the currency exchange rate.
           bookPrice: {
             $toDouble: {
               $ifNull: [
@@ -214,7 +236,10 @@ function getCosts() {
             $sum: '$bookPrice',
           },
           items: {
-            $addToSet: '$details.description',
+            $push: {
+              price: '$bookPrice',
+              description: '$details.description',
+            },
           },
         },
       },
@@ -267,7 +292,11 @@ function getFinancialMutations() {
             $sum: '$bookPrice',
           },
           items: {
-            $addToSet: '$message',
+            $push: {
+              price: '$bookPrice',
+              date: '$date',
+              message: '$message',
+            },
           },
         },
       },
@@ -299,6 +328,7 @@ function groupByName<T>(
 }
 
 type Name = keyof ReturnType<typeof groupByName>;
+const names: Name[] = ['bart', 'ian', 'niels'];
 
 function groupByNameUnique<T>(
   collection: T[],
@@ -330,18 +360,162 @@ export async function getStaticProps() {
   const piePerYear = getPiePerYear(hours);
 
   return {
-    props: { financialMutations, piePerYear, invoices, costs },
+    props: serialize({ financialMutations, piePerYear, invoices, costs }),
   };
 }
 
 export default function MoneyPage(
   props: InferGetStaticPropsType<typeof getStaticProps>,
 ) {
+  const allInvoiceStates = uniq(props.invoices.map((i) => i._id.state));
+
+  const [invoiceStates, setInvoiceStates] = useState(allInvoiceStates);
+
+  const yearResults = props.piePerYear.map((year) => {
+    const invoices = props.invoices.filter(
+      (i) => invoiceStates.includes(i._id.state) && i._id.year === year.year,
+    );
+    const invoicesTotal = sumBy(invoices, (i) => i.price);
+    const costs = props.costs.filter((c) => c._id.year === year.year);
+    const costsForAll = costs.filter(
+      (c) => !names.some((name) => c._id.category.startsWith(`${name}-`)),
+    );
+    const costsForAllTotal = sumBy(costsForAll, (c) => c.price);
+
+    return {
+      year: year.year,
+      invoices,
+      invoicesTotal,
+      costsForAll,
+      costsForAllTotal,
+      names: mapValues(year.names, (slice, name) => {
+        const personalCosts = costs.filter((c) =>
+          c._id.category.startsWith(`${name}-`),
+        );
+        const personalCostsTotal = sumBy(personalCosts, (c) => c.price);
+        return {
+          percentage: slice.percentage,
+          result: (invoicesTotal - costsForAllTotal) * slice.percentage,
+          personalCosts,
+          personalCostsTotal,
+        };
+      }),
+    };
+  });
+
+  const totals = groupByNameUnique(
+    names.map((name) => {
+      const result = sumBy(yearResults, (r) => r.names[name].result);
+      const personalCosts = yearResults
+        .map((r) => r.names[name].personalCosts)
+        .flat();
+      const personalCostsTotal = sumBy(
+        yearResults,
+        (r) => r.names[name].personalCostsTotal,
+      );
+      const withdrawn = props.financialMutations.filter((m) =>
+        m._id.startsWith(`${name}-`),
+      );
+      const withdrawnTotal = -sumBy(withdrawn, (m) => m.price);
+      const balance = (result - personalCostsTotal - withdrawnTotal).toFixed(2);
+
+      return {
+        name,
+        result,
+        personalCosts,
+        personalCostsTotal,
+        withdrawnTotal,
+        balance,
+      };
+    }),
+    (t) => t.name,
+  );
+
   return (
     <Layout>
-      <Container sx={{ mb: 1, flexGrow: 1 }}>
+      <Container>
+        <Box>
+          <FormControl component="div">
+            <FormLabel>Facturen</FormLabel>
+            <FormGroup>
+              {allInvoiceStates.map((invoiceState) => (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={invoiceStates.includes(invoiceState)}
+                      onChange={
+                        invoiceStates.includes(invoiceState)
+                          ? () => {
+                              setInvoiceStates(
+                                invoiceStates.filter((i) => i !== invoiceState),
+                              );
+                            }
+                          : () => {
+                              setInvoiceStates([
+                                ...invoiceStates,
+                                invoiceState,
+                              ]);
+                            }
+                      }
+                    />
+                  }
+                  label={invoiceState}
+                />
+              ))}
+            </FormGroup>
+          </FormControl>
+        </Box>
+
+        {names.map((name) => {
+          return (
+            <Fragment key={name}>
+              <Typography variant="h2">{capitalize(name)}</Typography>
+              {yearResults.map((year) => {
+                return (
+                  <Typography key={year.year}>
+                    <strong>Jaar {year.year}</strong> ({year.invoicesTotal} -{' '}
+                    {year.costsForAllTotal}) *{' '}
+                    {(year.names[name].percentage * 100).toFixed(2)}% ={' '}
+                    {year.names[name].result.toFixed(2)}
+                  </Typography>
+                );
+              })}
+              <Typography>
+                <strong>Totaal</strong> {totals[name].result.toFixed(2)}
+              </Typography>
+              <Typography>
+                <strong>Persoonlijke kosten</strong>{' '}
+                <Tooltip
+                  title={
+                    <>
+                      {totals[name].personalCosts.map((c) =>
+                        c.items.map((cc) => (
+                          <Typography>
+                            {cc.price.toFixed(2)} {cc.description}
+                          </Typography>
+                        )),
+                      )}
+                    </>
+                  }
+                >
+                  <span>{totals[name].personalCostsTotal}</span>
+                </Tooltip>
+              </Typography>
+              <Typography>
+                <strong>Reeds opgenomen</strong> {totals[name].withdrawnTotal}{' '}
+                (let op: klopt nog niet, hier moeten privé betaalde dingen nog
+                bij opgeteld worden.)
+              </Typography>
+              <Typography>
+                <strong>Saldo</strong> {totals[name].balance} (let op: hier moet
+                nog belasting over betaald worden)
+              </Typography>
+            </Fragment>
+          );
+        })}
+        <Typography variant="h2">Ruwe data</Typography>
         <pre>
-          <code>{JSON.stringify(props, null, 2)}</code>
+          <code>{JSON.stringify(unserialize(props), null, 2)}</code>
         </pre>
       </Container>
     </Layout>
